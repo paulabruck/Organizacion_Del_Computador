@@ -40,31 +40,31 @@ menu:
     mov  	rcx,msgOpcion2
 	call 	puts
 
-    mov rcx,opcionIngresada
-    call gets
+    mov     rcx,opcionIngresada
+    call    gets
 
     mov 	rcx,opcionIngresada
 	mov		rdx,numeroFormato
 	mov 	r8,opcion
-	sub		rsp,32
 	call	sscanf
-	add		rsp,32
-
+	
 	cmp		rax,1
 	jl		errorIngresoCantidad
 
 	call 	validarCantidad
-	;cmp		byte[datoValido],'N'
-	;je		errorIngresoCantidad
+
+    cmp		word[opcion],1
+    je      caso1
+
+    cmp		word[opcion],2
+    je      caso2
 
 	jmp 	finIngresoCantidad
 
 errorIngresoCantidad:
 	mov 	rcx,mensajeErrorCantidad
-	sub 	rsp,32
 	call 	printf
-	add 	rsp,32
-	jmp 	menu
+    jmp 	menu
 finIngresoCantidad:
 ret
 
@@ -72,15 +72,53 @@ ret
 ;   Valida si la cantidad ingresada por el usuario es válida
 ;------------------------------------------------------
 validarCantidad:
-	mov		byte[datoValido],'N'
 
 	cmp		word[opcion],1
-	jl		errorIngresoCantidad;finValidarCantidad
+	jl		errorIngresoCantidad
 
 	cmp		word[opcion],2
-	jg		errorIngresoCantidad;finValidarCantidad
-
-	mov		byte[datoValido],'S'
+	jg		errorIngresoCantidad
 
 finValidarCantidad:
 ret
+
+caso1:
+    mov  	rcx,msgSubOpcion1
+	call 	puts
+
+    mov  	rcx,msgSubOpcion11
+	call 	puts
+
+    mov  	rcx,msgSubOpcion12
+	call 	puts
+
+    mov     rcx,opcionIngresada
+    call    gets
+
+    mov 	rcx,opcionIngresada
+	mov		rdx,numeroFormato
+	mov 	r8,opcion
+	call	sscanf
+
+
+	cmp		rax,1
+	jl		errorIngresoCantidad
+
+	call 	validarCantidad
+caso2:
+    mov  	rcx,msgSubOpcion2
+	call 	puts
+
+    mov     rcx,opcionIngresada
+    call    gets
+
+    mov 	rcx,opcionIngresada
+	mov		rdx,numeroFormato
+	mov 	r8,opcion
+	call	sscanf
+
+
+	cmp		rax,1
+	jl		errorIngresoCantidad
+
+	call 	validarCantidad
