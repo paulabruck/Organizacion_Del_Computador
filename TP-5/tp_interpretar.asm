@@ -15,7 +15,8 @@ section .data
     msgIngConf                  db  "~~Ingrese segun configuracion elegida~~",0     
     msgSubOpcion2               db  "~~Ingresar notacion cientifica a interpretar~~",0
     msgConfSelec                db  "~~Ingresar configuracion a visualizar~~",0
-    mensajeErrorCantidad	    db  "@@ La opcion ingresada no es valida, por favor verifique de ingresar una valida @@ ",0
+    mensajeErrorCantidad	    db  "@@ La opcion ingresada no es valida, por favor verifique de ingresar una valida @@",0
+    msgenter                    db  " ",0
     numeroFormato               db  '%hi',0
 
 section .bss
@@ -64,7 +65,11 @@ primerSubMenu:
 
 errorIngresoCantidad:
 	mov 	rcx,mensajeErrorCantidad
-	call 	printf
+	call 	puts
+
+    mov     rcx,msgenter
+    call    puts
+
     jmp     menu
 finIngresoCantidad:
 ret
