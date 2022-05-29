@@ -15,27 +15,35 @@ section .data
     msgIngConf                  db  "~~Ingrese segun configuracion elegida~~",0     
     msgSubOpcion2               db  "~~Ingresar notacion cientifica a interpretar~~",0
     msgConfSelec                db  "~~Ingresar configuracion a visualizar~~",0
-    mensajeErrorCantidad	    db  "@@ La opcion ingresada no es valida, por favor verifique de ingresar una valida @@",0
+    mensajeErrorOpcion  	    db  "@@ La opcion ingresada no es valida, por favor verifique de ingresar una valida @@",0
     msgenter                    db  " ",0
-    numeroFormato               db  '%hi',0
+    posicion                    dq  1
+    vectorHexa                  db  "0123456789ABCDEF"
+    vectorBina                  db  "10"
+    numeroFormato               db  '%lli',0
 
 section .bss
     opcionIngresada     resb 1
     opcion              resb 1
     datoValido		    resb 1
+    vector              times 16 resb 1
+   
     buffer  		    resb 1
 
 section .text
 
 main:
 
+;----------------------------------------------------------------------;
+; Brinda opciones al usuario para poder definir la accion a realizar   ;
+;----------------------------------------------------------------------;
 menu:
     mov  	rcx,msgBienvenida
-	call    puts
+	call 	puts
 
     mov  	rcx,msgContinuacion
-	call    puts
-primerSubMenu:
+	call 	puts
+
     mov  	rcx,msgOpcion1
 	call 	puts
 
@@ -51,9 +59,9 @@ primerSubMenu:
 	call	sscanf
 	
 	cmp		rax,1
-	jl		errorIngresoCantidad
+	jl		errorIngresoOpcion
     
-	call 	validarCantidad
+	call 	validarOpcion
 
     cmp		word[opcion],1
     je      caso1
@@ -61,33 +69,45 @@ primerSubMenu:
     cmp		word[opcion],2
     je      caso2
 
-	jmp 	finIngresoCantidad
-
-errorIngresoCantidad:
-	mov 	rcx,mensajeErrorCantidad
+errorIngresoOpcion:
+	mov 	rcx,mensajeErrorOpcion
 	call 	puts
 
     mov     rcx,msgenter
     call    puts
 
     jmp     menu
-finIngresoCantidad:
+
+finIngresoOpcion:
 ret
 
 ;-----------------------------------------------------------;
-; Valida si la cantidad ingresada por el usuario es válida  ;
+; Valida si la opcion ingresada por el usuario es válida    ;
 ;-----------------------------------------------------------;
-validarCantidad:
+validarOpcion:
 
 	cmp		word[opcion],1
-	jl      errorIngresoCantidad
+	jl		errorIngresoOpcion
+    
 
 	cmp		word[opcion],2
-	jg		errorIngresoCantidad
+	jg		errorIngresoOpcion
 
-finValidarCantidad:
-ret
+    ret
+validarBinario:
+    mov rcx, numeroFormato
+    mov rdx, [opcion]
+    call printf
+   
+    ;mov rdx,0
+    ;mov rcx,[opcion]
+    ;mov [vector+rdx],rcx
+    ;mov r9,numeroFormato
+    ;mov r8,[vector+rdx]
+   
+   
 
+    ret
 caso1:
     mov  	rcx,msgSubOpcion1
 	call 	puts
@@ -108,10 +128,10 @@ caso1:
 
 
 	cmp		rax,1
-	jl		errorIngresoCantidad
+	jl		errorIngresoOpcion
 
-	call 	validarCantidad
-
+	call 	validarOpcion
+   
     mov  	rcx,msgIngConf
 	call 	puts
 
@@ -124,8 +144,9 @@ caso1:
 	call	sscanf
 
     cmp		rax,1
-	jl		errorIngresoCantidad
-    jmp     finIngresoCantidad
+	jl		errorIngresoOpcion
+    call    validarBinario
+    jmp     finIngresoOpcion
 
 caso2:
     mov  	rcx,msgSubOpcion2
@@ -141,7 +162,7 @@ caso2:
 
 
 	cmp		rax,1
-	jl		errorIngresoCantidad
+	jl		errorIngresoOpcion
 
     mov  	rcx,msgConfSelec
 	call 	puts
@@ -162,7 +183,7 @@ caso2:
 
 
 	cmp		rax,1
-	jl		errorIngresoCantidad
+	jl		errorIngresoOpcion
 
-    call    validarCantidad
+    call    validarOpcion
 	
