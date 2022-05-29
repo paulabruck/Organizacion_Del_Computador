@@ -31,10 +31,10 @@ main:
 
 menu:
     mov  	rcx,msgBienvenida
-	call 	puts
+	call    puts
 
     mov  	rcx,msgContinuacion
-	call 	puts
+	call    puts
 primerSubMenu:
     mov  	rcx,msgOpcion1
 	call 	puts
@@ -80,7 +80,7 @@ ret
 validarCantidad:
 
 	cmp		word[opcion],1
-	jl		errorIngresoCantidad
+	jl      errorIngresoCantidad
 
 	cmp		word[opcion],2
 	jg		errorIngresoCantidad
