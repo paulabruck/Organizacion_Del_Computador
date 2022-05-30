@@ -14,6 +14,8 @@ section .data
     msgSubOpcion12              db  "(2) Hexadecimal",0
     msgIngConf                  db  "~~Ingrese digito a digito por linea segun configuracion elegida~~",0     
     msgSubOpcion2               db  "~~Ingresar notacion cientifica a interpretar~~",0
+    msgIngCoef                  db  "~~Ingresar Coeficiente:  ",0
+    msgIngExpo                  db  "~~Ingresar exponente:  ",0
     msgConfSelec                db  "~~Ingresar configuracion a visualizar~~",0
     mensajeErrorOpcion  	    db  "@@ La opcion ingresada no es valida, por favor verifique de ingresar una valida @@",0
     msgenter                    db  " ",0
@@ -26,6 +28,7 @@ section .data
     msgnumHexa                  db  "~~Numero hexadecimal ingresado valido -------> ",0
     numeroFormato               db  '%lli',0
     stringFormato               db  '%s',0
+    msgBase                     db  "X10 ^ "
 
 section .bss
     opcionIngresada     resb 1
@@ -289,8 +292,15 @@ vectorHexaPrinteado:
 ret
 
 caso2:
+    mov     rsi,0
     mov  	rcx,msgSubOpcion2
 	call 	puts
+
+ingresarCoeficiente:
+    cmp     rsi,184
+    jge     ingresarExponente
+    mov  	rcx,msgIngCoef
+	call 	printf
 
     mov     rcx,opcionIngresada
     call    gets
@@ -300,10 +310,35 @@ caso2:
 	mov 	r8,opcion
 	call	sscanf
 
+	cmp		rax,1
+	jl		errorIngresoOpcion
+    call    agregarCoefAVector
+    mov rsi,184
+    
+
+ingresarExponente:
+
+    cmp     rsi,216
+    jge     exponente
+    mov  	rcx,msgIngExpo
+	call 	printf
+
+    mov     rcx,opcionIngresada
+    call    gets
+
+    mov 	rcx,opcionIngresada
+	mov		rdx,numeroFormato
+	mov 	r8,opcion
+	call	sscanf
 
 	cmp		rax,1
 	jl		errorIngresoOpcion
-
+    
+    call    agregarExpoAVector
+   
+visualizar:
+    mov     rcx,msgenter
+    call puts
     mov  	rcx,msgConfSelec
 	call 	puts
 
@@ -321,9 +356,40 @@ caso2:
 	mov 	r8,opcion
 	call	sscanf
 
-
 	cmp		rax,1
 	jl		errorIngresoOpcion
 
     call    validarOpcion
+ret
+agregarCoefAVector:
 
+    mov rdi,[opcion]
+    mov [vector+rsi],rdi
+
+    add rsi,8
+    jmp ingresarCoeficiente
+
+ret   
+
+agregarExpoAVector:
+    mov rdi,[opcion]
+    mov [vector+rsi],rdi
+
+    add rsi,8
+    jmp ingresarExponente
+
+ret
+exponente:
+    mov rsi,0
+printearExpoCien:
+    cmp rsi,216
+    jge  vectorExpoCienPrinteado
+
+    mov     rcx,numeroFormato
+    mov     rdx,[vector+rsi]
+    call    printf
+
+    add rsi,8
+    jmp printearExpoCien
+vectorExpoCienPrinteado:
+ret
