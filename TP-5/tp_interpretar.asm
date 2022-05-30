@@ -28,7 +28,7 @@ section .data
     msgnumHexa                  db  "~~Numero hexadecimal ingresado valido -------> ",0
     numeroFormato               db  '%lli',0
     stringFormato               db  '%s',0
-    msgBase                     db  "X10 ^ "
+    msgBase                     db  " X10 ^ "
 
 section .bss
     opcionIngresada     resb 1
@@ -382,7 +382,7 @@ ret
 exponente:
     mov rsi,0
 printearExpoCien:
-    cmp rsi,216
+    cmp rsi,184
     jge  vectorExpoCienPrinteado
 
     mov     rcx,numeroFormato
@@ -392,4 +392,20 @@ printearExpoCien:
     add rsi,8
     jmp printearExpoCien
 vectorExpoCienPrinteado:
+    mov rcx, msgBase
+    call printf
+    mov rsi,184
+    jmp printmas
+
+printmas:
+    cmp rsi,216
+    jge  vectorr
+
+    mov     rcx,numeroFormato
+    mov     rdx,[vector+rsi]
+    call    printf
+
+    add rsi,8
+    jmp printmas
+vectorr:
 ret
