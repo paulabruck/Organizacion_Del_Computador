@@ -20,8 +20,10 @@ section .data
     posicion                    dq  1
     vectorHexa                  db  "0123456789ABCDEF"
     vector                      times 32 dq 1
+    msgLetrasMay                db  "(Ingresar las letras en Mayuscula)",0
     msgProxNum                  db  "~~Proximo Digito: ",0
     msgnumBina                  db  "~~Numero binario ingresado valido -------> ",0
+    msgnumHexa                  db  "~~Numero hexadecimal ingresado valido -------> ",0
     numeroFormato               db  '%lli',0
     stringFormato               db  '%s',0
 
@@ -109,6 +111,52 @@ validarBinario:
     jmp errorIngresoOpcion
      
 ret
+validarHexadecimal:
+    cmp word[inputNumeros],'1'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'2'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'3'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'4'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'5'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'6'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'7'
+    je  agregarHexaAVector
+    jg  corroborarLetras
+    
+    
+ret
+corroborarLetras:
+    cmp word[inputNumeros],'A'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'B'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'C'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'D'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'E'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'F'
+    je  agregarHexaAVector
+
+    jmp errorIngresoOpcion
+ret
 caso1:
     mov  	rcx,msgSubOpcion1
 	call 	puts
@@ -195,6 +243,8 @@ ret
 
 esHexadecimal:
     mov rsi,0
+    mov rcx, msgLetrasMay
+    call puts
 ingresoHexadecimal:
     cmp rsi,32
     jge  hexadecimalValido
@@ -208,8 +258,7 @@ ingresoHexadecimal:
     mov     rcx, inputNumeros
     call    puts
 
-   ; call validarHexadecimal
-    jmp agregarHexaAVector
+    call validarHexadecimal
 
 ret
 agregarHexaAVector:
@@ -222,7 +271,7 @@ agregarHexaAVector:
 ret
 hexadecimalValido:
     mov     rsi,0
-    mov		rcx,msgnumBina	
+    mov		rcx,msgnumHexa	
 	call	printf	
     jmp printearHexa
 ret    
