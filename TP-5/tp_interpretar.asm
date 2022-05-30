@@ -12,7 +12,7 @@ section .data
     msgSubOpcion1               db  "~~Ingresar configuracion a interpretar~~",0
     msgSubOpcion11              db  "(1) Binaria",0
     msgSubOpcion12              db  "(2) Hexadecimal",0
-    msgIngConf                  db  "~~Ingrese segun configuracion elegida~~",0     
+    msgIngConf                  db  "~~Ingrese digito a digito por linea segun configuracion elegida~~",0     
     msgSubOpcion2               db  "~~Ingresar notacion cientifica a interpretar~~",0
     msgConfSelec                db  "~~Ingresar configuracion a visualizar~~",0
     mensajeErrorOpcion  	    db  "@@ La opcion ingresada no es valida, por favor verifique de ingresar una valida @@",0
@@ -20,13 +20,17 @@ section .data
     posicion                    dq  1
     vectorHexa                  db  "0123456789ABCDEF"
     vectorBina                  db  "10"
+    vector                      times 32 dq 1
+    msgProxNum                  db  "Proximo Digito: ",0
     numeroFormato               db  '%lli',0
 
 section .bss
     opcionIngresada     resb 1
     opcion              resb 1
     datoValido		    resb 1
-    vector              times 16 resb 1
+    contador_ingreso    resb 0
+    contador_print      resb 0
+    inputNumeros        resb 50
    
     buffer  		    resb 1
 
@@ -94,20 +98,12 @@ validarOpcion:
 	jg		errorIngresoOpcion
 
     ret
-validarBinario:
-    mov rcx, numeroFormato
-    mov rdx, [opcion]
-    call printf
-   
-    ;mov rdx,0
-    ;mov rcx,[opcion]
-    ;mov [vector+rdx],rcx
-    ;mov r9,numeroFormato
-    ;mov r8,[vector+rdx]
-   
+;validarBinario:
+ ;   cmp word[opcion],1
+     
    
 
-    ret
+  ;  ret
 caso1:
     mov  	rcx,msgSubOpcion1
 	call 	puts
@@ -134,20 +130,43 @@ caso1:
    
     mov  	rcx,msgIngConf
 	call 	puts
+    
+    mov     rsi,0
+    cmp     word[opcion],1
+    je      esBinario
 
-    mov     rcx,opcionIngresada
+    cmp     word[opcion],2
+    je      esHexadecimal
+
+    
+esBinario:
+
+    cmp rsi,256
+    jge  esHexadecimal
+
+	mov		rcx,msgProxNum	
+	call	printf					
+
+    mov     rcx,inputNumeros
+    sub     rsp,32
     call    gets
+    add     rsp,32
 
-    mov 	rcx,opcionIngresada
-	mov		rdx,numeroFormato
-	mov 	r8,opcion
-	call	sscanf
+    mov rcx,inputNumeros
+    mov rdx,numeroFormato
+    mov r8,opcion
+    call sscanf
 
-    cmp		rax,1
-	jl		errorIngresoOpcion
-    call    validarBinario
-    jmp     finIngresoOpcion
+    cmp rax,1
+    jl errorIngresoOpcion
 
+    mov rdi,[opcion]
+    mov [vector+rsi],rdi
+
+    add rsi,8
+
+    jmp esBinario
+ret
 caso2:
     mov  	rcx,msgSubOpcion2
 	call 	puts
@@ -186,4 +205,6 @@ caso2:
 	jl		errorIngresoOpcion
 
     call    validarOpcion
-	
+
+esHexadecimal:
+ret    
