@@ -19,10 +19,11 @@ section .data
     msgenter                    db  " ",0
     posicion                    dq  1
     vectorHexa                  db  "0123456789ABCDEF"
-    vectorBina                  db  "10"
     vector                      times 32 dq 1
-    msgProxNum                  db  "Proximo Digito: ",0
+    msgProxNum                  db  "~~Proximo Digito: ",0
+    msgnumBina                  db  "~~Numero binario ingresado valido -------> ",0
     numeroFormato               db  '%lli',0
+    stringFormato               db  '%s',0
 
 section .bss
     opcionIngresada     resb 1
@@ -98,12 +99,16 @@ validarOpcion:
 	jg		errorIngresoOpcion
 
     ret
-;validarBinario:
- ;   cmp word[opcion],1
-     
-   
+validarBinario:
+    cmp word[opcion],1
+    je  agregarAVector
 
-  ;  ret
+    cmp word[opcion],0
+    je  agregarAVector
+
+    jmp errorIngresoOpcion
+     
+ret
 caso1:
     mov  	rcx,msgSubOpcion1
 	call 	puts
@@ -122,7 +127,6 @@ caso1:
 	mov 	r8,opcion
 	call	sscanf
 
-
 	cmp		rax,1
 	jl		errorIngresoOpcion
 
@@ -131,7 +135,6 @@ caso1:
     mov  	rcx,msgIngConf
 	call 	puts
     
-    mov     rsi,0
     cmp     word[opcion],1
     je      esBinario
 
@@ -140,9 +143,10 @@ caso1:
 
     
 esBinario:
-
+    mov rsi,0
+ingresoBinario:
     cmp rsi,256
-    jge  esHexadecimal
+    jge  binarioValido
 
 	mov		rcx,msgProxNum	
 	call	printf					
@@ -159,14 +163,82 @@ esBinario:
 
     cmp rax,1
     jl errorIngresoOpcion
+    call validarBinario
 
+agregarAVector:
     mov rdi,[opcion]
     mov [vector+rsi],rdi
 
     add rsi,8
 
-    jmp esBinario
+    jmp ingresoBinario
 ret
+binarioValido:
+    mov rsi,0
+    mov		rcx,msgnumBina	
+	call	printf	
+    jmp printearNumeros
+ret    
+printearNumeros:
+    cmp rsi,256
+    jge  vectorPrinteado
+
+    mov rcx,numeroFormato
+    mov rdx,[vector+rsi]
+   
+    call    printf
+
+    add rsi,8
+    jmp printearNumeros
+vectorPrinteado:
+ret
+
+esHexadecimal:
+    mov rsi,0
+ingresoHexadecimal:
+    cmp rsi,32
+    jge  hexadecimalValido
+
+	mov		rcx,msgProxNum	
+	call	printf					
+
+    mov     rcx,inputNumeros
+    call    gets
+
+    mov     rcx, inputNumeros
+    call    puts
+
+   ; call validarHexadecimal
+    jmp agregarHexaAVector
+
+ret
+agregarHexaAVector:
+    mov rdi,[inputNumeros]
+    mov [vector+rsi],rdi
+
+    add rsi,4
+
+    jmp ingresoHexadecimal
+ret
+hexadecimalValido:
+    mov     rsi,0
+    mov		rcx,msgnumBina	
+	call	printf	
+    jmp printearHexa
+ret    
+printearHexa:
+    cmp rsi,32
+    jge  vectorPrinteado
+
+    mov rcx,stringFormato
+    lea rdx,[vector+rsi]
+    call    printf
+
+    add rsi,4
+    jmp printearHexa
+vectorHexaPrinteado:
+ret
+
 caso2:
     mov  	rcx,msgSubOpcion2
 	call 	puts
@@ -206,5 +278,3 @@ caso2:
 
     call    validarOpcion
 
-esHexadecimal:
-ret    
