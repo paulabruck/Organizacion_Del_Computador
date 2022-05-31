@@ -26,9 +26,11 @@ section .data
     msgProxNum                  db  "~~Proximo Digito: ",0
     msgnumBina                  db  "~~Numero binario ingresado valido -------> ",0
     msgnumHexa                  db  "~~Numero hexadecimal ingresado valido -------> ",0
+    msgNotCien                  db  "~~La Notacion cientifica normalizada en base 2 ingresada es ------->",0
     numeroFormato               db  '%lli',0
     stringFormato               db  '%s',0
-    msgBase                     db  " X10 ^ "
+    msgBase                     db  " X10 ^ ",0
+    msgcoma                     db  " , "
 
 section .bss
     opcionIngresada     resb 1
@@ -43,7 +45,7 @@ section .bss
 section .text
 
 main:
-
+    jmp menu
 ;----------------------------------------------------------------------;
 ; Brinda opciones al usuario para poder definir la accion a realizar   ;
 ;----------------------------------------------------------------------;
@@ -79,6 +81,9 @@ menu:
     cmp		word[opcion],2
     je      caso2
 
+;-----------------------------------------------------------;
+; Avisa al usuario el error y le pide que ingrese nuevamente;
+;-----------------------------------------------------------;
 errorIngresoOpcion:
 	mov 	rcx,mensajeErrorOpcion
 	call 	puts
@@ -104,16 +109,21 @@ validarOpcion:
 	jg		errorIngresoOpcion
 
     ret
+;-----------------------------------------------------------;
+; Valida si el numero ingresado es binario                  ;
+;-----------------------------------------------------------;    
 validarBinario:
     cmp word[opcion],1
-    je  agregarAVector
-
-    cmp word[opcion],0
-    je  agregarAVector
-
-    jmp errorIngresoOpcion
-     
+    jne  sera0
 ret
+sera0:
+    cmp word[opcion],0
+    jne  errorIngresoOpcion
+
+ret 
+;-----------------------------------------------------------;
+; Valida si el numero ingresado es hexadecimal              ;
+;-----------------------------------------------------------; 
 validarHexadecimal:
     cmp word[inputNumeros],'1'
     je  agregarHexaAVector
@@ -136,8 +146,7 @@ validarHexadecimal:
     cmp word[inputNumeros],'7'
     je  agregarHexaAVector
     jg  corroborarLetras
-    
-    
+      
 ret
 corroborarLetras:
     cmp word[inputNumeros],'A'
@@ -160,6 +169,9 @@ corroborarLetras:
 
     jmp errorIngresoOpcion
 ret
+;-----------------------------------------------------------;
+; visualizar configuracion en notacion cientifica           ;
+;-----------------------------------------------------------; 
 caso1:
     mov  	rcx,msgSubOpcion1
 	call 	puts
@@ -191,8 +203,9 @@ caso1:
 
     cmp     word[opcion],2
     je      esHexadecimal
-
-    
+;-----------------------------------------------------------;
+; configuracion binaria a     notacion cientifica           ;
+;-----------------------------------------------------------;
 esBinario:
     mov rsi,0
 ingresoBinario:
@@ -215,7 +228,8 @@ ingresoBinario:
     cmp rax,1
     jl errorIngresoOpcion
     call validarBinario
-
+    jmp  agregarAVector
+ret
 agregarAVector:
     mov rdi,[opcion]
     mov [vector+rsi],rdi
@@ -229,7 +243,8 @@ binarioValido:
     mov		rcx,msgnumBina	
 	call	printf	
     jmp printearNumeros
-ret    
+ret 
+ 
 printearNumeros:
     cmp rsi,256
     jge  vectorPrinteado
@@ -243,7 +258,9 @@ printearNumeros:
     jmp printearNumeros
 vectorPrinteado:
 ret
-
+;-----------------------------------------------------------;
+;  configuracion hexadeciaml a notacion cientifica          ;
+;-----------------------------------------------------------;
 esHexadecimal:
     mov rsi,0
     mov rcx, msgLetrasMay
@@ -289,15 +306,35 @@ printearHexa:
     add rsi,4
     jmp printearHexa
 vectorHexaPrinteado:
+ ;   mov rsi,0
+ ;   jmp convertirHexaABinario
 ret
+;aBinario:
+;    cmp rdx,'1'
+;    je  
+;ret
+;convertirHexaABinario:
+;    cmp rsi,32
+;    jge  vectorPrinteado
 
+;    mov rcx,stringFormato
+;    lea rdx,[vector+rsi]
+;    call    aBinario
+;    call    printf
+
+;    add rsi,4
+;    jmp convertirHexaABinario
+;ret
+;-----------------------------------------------------------;
+; Pasar Notacion cientifica a configuracion                 ;
+;-----------------------------------------------------------;
 caso2:
     mov     rsi,0
     mov  	rcx,msgSubOpcion2
 	call 	puts
 
 ingresarCoeficiente:
-    cmp     rsi,184
+    cmp     rsi,192
     jge     ingresarExponente
     mov  	rcx,msgIngCoef
 	call 	printf
@@ -312,14 +349,14 @@ ingresarCoeficiente:
 
 	cmp		rax,1
 	jl		errorIngresoOpcion
+    call    validarBinario
     call    agregarCoefAVector
-    mov rsi,184
+    mov     rsi,192
     
-
 ingresarExponente:
 
-    cmp     rsi,216
-    jge     exponente
+    cmp     rsi,224
+    jge     printNCienti
     mov  	rcx,msgIngExpo
 	call 	printf
 
@@ -338,7 +375,8 @@ ingresarExponente:
    
 visualizar:
     mov     rcx,msgenter
-    call puts
+    call    puts
+    
     mov  	rcx,msgConfSelec
 	call 	puts
 
@@ -379,33 +417,48 @@ agregarExpoAVector:
     jmp ingresarExponente
 
 ret
-exponente:
+printNCienti:
+    mov rcx, msgNotCien
+    call printf
     mov rsi,0
-printearExpoCien:
-    cmp rsi,184
-    jge  vectorExpoCienPrinteado
+printAntesComa:
+    cmp rsi,8
+    jge printComa
+    mov     rcx,numeroFormato
+    mov     rdx,[vector+rsi]
+    call    printf
+
+    add rsi,8
+printComa:
+    mov rcx, msgcoma
+    call printf
+    mov rsi,8
+    jmp printCoef
+printCoef:
+    cmp rsi,192
+    jge  printBase
 
     mov     rcx,numeroFormato
     mov     rdx,[vector+rsi]
     call    printf
 
     add rsi,8
-    jmp printearExpoCien
-vectorExpoCienPrinteado:
+    jmp printCoef
+printBase:
     mov rcx, msgBase
     call printf
-    mov rsi,184
-    jmp printmas
+    mov rsi,192
+    jmp printExpo
 
-printmas:
-    cmp rsi,216
-    jge  vectorr
+printExpo:
+    cmp rsi,224
+    jge  printFin
 
     mov     rcx,numeroFormato
     mov     rdx,[vector+rsi]
     call    printf
 
     add rsi,8
-    jmp printmas
-vectorr:
+    jmp printExpo
+printFin:
 ret
