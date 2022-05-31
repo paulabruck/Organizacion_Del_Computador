@@ -31,6 +31,9 @@ section .data
     stringFormato               db  '%s',0
     msgBase                     db  " X10 ^ ",0
     msgcoma                     db  " , "
+    Y                           dq 0
+    Y2                          dq 0
+    aux                         dq 0
 
 section .bss
     opcionIngresada     resb 1
@@ -398,6 +401,11 @@ visualizar:
 	jl		errorIngresoOpcion
 
     call    validarOpcion
+    cmp     word[opcion],1
+    je      aConfBinaria
+
+    cmp     word[opcion],2
+    je      aConfHexa
 ret
 agregarCoefAVector:
 
@@ -461,4 +469,50 @@ printExpo:
     add rsi,8
     jmp printExpo
 printFin:
+ret
+aConfBinaria:
+    mov rsi,8
+    mov qword[Y],0
+calcularExpoExceso:
+    cmp rsi,72
+    jge aConfHexa
+    mov rcx, numeroFormato
+    mov rdx,[vector+rsi]
+    call printf
+    
+    cmp qword[rdx],0
+    je  sig
+opero:    
+    mov r8,2
+    mov r9,2
+    mov rcx,qword[Y]
+    mov qword[Y2],rcx
+    cmp qword[Y],0
+    je  elvadoACero
+    jg  potenciaXY
+elvadoACero:
+    mov r8,1
+ret
+potenciaXY:
+    imul r8,r9
+    dec qword[Y]
+    cmp qword[Y],0
+    jnz potenciaXY
+
+    ;terminó la cuenta así que muevo el resultado hacia la variable correspondiente
+
+    mov r12,r8
+sig:    
+    add rsi,8
+    add qword[aux],r12
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+    call printf
+    inc qword[Y2]
+    jmp calcularExpoExceso
+ret    
+aConfHexa:
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+    call printf
 ret
