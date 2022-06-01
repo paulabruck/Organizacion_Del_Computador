@@ -431,62 +431,68 @@ aConfBinaria:
     mov rsi,192
     mov qword[contador],0
 calcularExpoExceso:
-    jmp yo
     cmp rsi,224    
     jge aConfHexa
-  ;  mov rcx, numeroFormato
+  
+    mov rcx, numeroFormato
     mov rdx,[vector+rsi]
-   ; call printf
-    ;add qword[aux],2
+    call printf
+
+    cmp qword[vector+rsi],0
+    je  sig
+    cmp qword[vector+rsi],1
+    je  cont
+
+cont:
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+    call printf
+    add qword[aux],2
    ; mov rcx, numeroFormato
    ; mov rdx,qword[aux]
     ;call printf
-    cmp qword[rdx],0
-    je  sig
-    
-    cmp qword[rdx],1
-    je  opero
-caso0:
-    inc qword[aux]
-    inc qword[contador]
-    jmp sig
+  ;  cmp qword[rdx],0
+   ; je  sig
+   ; inc qword[aux]
+;opero: 
+ ;   mov rcx,numeroFormato
+  ;  mov rdx, msgBienvenida
+   ; call printf
+;    cmp qword[contador],0
+;    je  caso0
+ ;   mov rcx,qword[contador]
+  ;  mov qword[Y2], rcx
+   ; jmp potenciaXY
+    ;mov rcx, qword[Y2]
+    ;mov qword[contador], rcx
+    ;inc qword[contador]
+    ;jmp sig
 
-opero: 
-    cmp qword[contador],0
-    je  caso0
-    mov rcx,qword[contador]
-    mov qword[Y2], rcx
-    jmp potenciaXY
-    mov rcx, qword[Y2]
-    mov qword[contador], rcx
-    inc qword[contador]
-    jmp sig
-
-potenciaXY:
+;potenciaXY:
    ; inc rdx
     
-    add qword[aux],2
-    dec qword[contador]
+ ;   add qword[aux],2
+  ;  dec qword[contador]
 
-    cmp qword[contador],0
-    jnz potenciaXY
+   ; cmp qword[contador],0
+    ;jnz potenciaXY
 
     ;terminó la cuenta así que muevo el resultado hacia la variable correspondiente
    ; add qword[aux],rcx
- ret
+ ;ret
 sig:    
     add rsi,8
     
-    add qword[aux],2
+   ; add qword[aux],2
 ;    mov rcx, numeroFormato
 ;    mov rdx,qword[aux]
 ;    call printf
     jmp calcularExpoExceso
 ret    
 aConfHexa:
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-    call printf
+  ;  mov rcx, numeroFormato
+   ; mov rdx,qword[aux]
+    ;call printf
 ret
 printGeneral:
     mov     rcx,numeroFormato
