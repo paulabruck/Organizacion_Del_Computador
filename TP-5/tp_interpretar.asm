@@ -31,7 +31,7 @@ section .data
     stringFormato               db  '%s',0
     msgBase                     db  " X10 ^ ",0
     msgcoma                     db  " , "
-    Y                           dq 0
+    contador                           dq 0
     Y2                          dq 0
     aux                         dq 0
 
@@ -48,7 +48,8 @@ section .bss
 section .text
 
 main:
-    jmp menu
+  
+
 ;----------------------------------------------------------------------;
 ; Brinda opciones al usuario para poder definir la accion a realizar   ;
 ;----------------------------------------------------------------------;
@@ -95,23 +96,17 @@ errorIngresoOpcion:
     call    puts
 
     jmp     menu
-
-finIngresoOpcion:
 ret
-
 ;-----------------------------------------------------------;
 ; Valida si la opcion ingresada por el usuario es válida    ;
 ;-----------------------------------------------------------;
 validarOpcion:
-
 	cmp		word[opcion],1
 	jl		errorIngresoOpcion
     
-
 	cmp		word[opcion],2
 	jg		errorIngresoOpcion
-
-    ret
+ret
 ;-----------------------------------------------------------;
 ; Valida si el numero ingresado es binario                  ;
 ;-----------------------------------------------------------;    
@@ -122,7 +117,6 @@ ret
 sera0:
     cmp word[opcion],0
     jne  errorIngresoOpcion
-
 ret 
 ;-----------------------------------------------------------;
 ; Valida si el numero ingresado es hexadecimal              ;
@@ -212,8 +206,8 @@ caso1:
 esBinario:
     mov rsi,0
 ingresoBinario:
-    cmp rsi,256
-    jge  binarioValido
+    cmp     rsi,256
+    jge     binarioValido
 
 	mov		rcx,msgProxNum	
 	call	printf					
@@ -231,7 +225,7 @@ ingresoBinario:
     cmp rax,1
     jl errorIngresoOpcion
     call validarBinario
-    jmp  agregarAVector
+    jmp agregarAVector
 ret
 agregarAVector:
     mov rdi,[opcion]
@@ -242,22 +236,13 @@ agregarAVector:
     jmp ingresoBinario
 ret
 binarioValido:
-    mov rsi,0
+    mov     rsi,0
     mov		rcx,msgnumBina	
 	call	printf	
-    jmp printearNumeros
-ret 
- 
 printearNumeros:
-    cmp rsi,256
+    cmp  rsi,256
     jge  vectorPrinteado
-
-    mov rcx,numeroFormato
-    mov rdx,[vector+rsi]
-   
-    call    printf
-
-    add rsi,8
+    call  printGeneral
     jmp printearNumeros
 vectorPrinteado:
 ret
@@ -269,8 +254,8 @@ esHexadecimal:
     mov rcx, msgLetrasMay
     call puts
 ingresoHexadecimal:
-    cmp rsi,32
-    jge  hexadecimalValido
+    cmp     rsi,32
+    jge     hexadecimalValido
 
 	mov		rcx,msgProxNum	
 	call	printf					
@@ -285,11 +270,8 @@ ingresoHexadecimal:
 
 ret
 agregarHexaAVector:
-    mov rdi,[inputNumeros]
-    mov [vector+rsi],rdi
-
-    add rsi,4
-
+    mov qword[aux],4
+    call rellenarVector
     jmp ingresoHexadecimal
 ret
 hexadecimalValido:
@@ -353,7 +335,8 @@ ingresarCoeficiente:
 	cmp		rax,1
 	jl		errorIngresoOpcion
     call    validarBinario
-    call    agregarCoefAVector
+    call    agregarNCAVector
+    jmp     ingresarCoeficiente
     mov     rsi,192
     
 ingresarExponente:
@@ -374,8 +357,9 @@ ingresarExponente:
 	cmp		rax,1
 	jl		errorIngresoOpcion
     
-    call    agregarExpoAVector
-   
+    call    agregarNCAVector
+    jmp     ingresarExponente
+         
 visualizar:
     mov     rcx,msgenter
     call    puts
@@ -407,24 +391,14 @@ visualizar:
     cmp     word[opcion],2
     je      aConfHexa
 ret
-agregarCoefAVector:
+agregarNCAVector:
 
     mov rdi,[opcion]
     mov [vector+rsi],rdi
 
     add rsi,8
-    jmp ingresarCoeficiente
-
 ret   
 
-agregarExpoAVector:
-    mov rdi,[opcion]
-    mov [vector+rsi],rdi
-
-    add rsi,8
-    jmp ingresarExponente
-
-ret
 printNCienti:
     mov rcx, msgNotCien
     call printf
@@ -432,83 +406,81 @@ printNCienti:
 printAntesComa:
     cmp rsi,8
     jge printComa
-    mov     rcx,numeroFormato
-    mov     rdx,[vector+rsi]
-    call    printf
-
-    add rsi,8
+    call printGeneral
 printComa:
     mov rcx, msgcoma
     call printf
     mov rsi,8
-    jmp printCoef
 printCoef:
     cmp rsi,192
     jge  printBase
-
-    mov     rcx,numeroFormato
-    mov     rdx,[vector+rsi]
-    call    printf
-
-    add rsi,8
+    call printGeneral
     jmp printCoef
 printBase:
     mov rcx, msgBase
     call printf
     mov rsi,192
-    jmp printExpo
-
 printExpo:
     cmp rsi,224
-    jge  printFin
-
-    mov     rcx,numeroFormato
-    mov     rdx,[vector+rsi]
-    call    printf
-
-    add rsi,8
+    jge  visualizar
+    call printGeneral
     jmp printExpo
 printFin:
 ret
 aConfBinaria:
-    mov rsi,8
-    mov qword[Y],0
+    mov rsi,192
+    mov qword[contador],0
 calcularExpoExceso:
-    cmp rsi,72
+    jmp yo
+    cmp rsi,224    
     jge aConfHexa
-    mov rcx, numeroFormato
+  ;  mov rcx, numeroFormato
     mov rdx,[vector+rsi]
-    call printf
-    
+   ; call printf
+    ;add qword[aux],2
+   ; mov rcx, numeroFormato
+   ; mov rdx,qword[aux]
+    ;call printf
     cmp qword[rdx],0
     je  sig
-opero:    
-    mov r8,2
-    mov r9,2
-    mov rcx,qword[Y]
-    mov qword[Y2],rcx
-    cmp qword[Y],0
-    je  elvadoACero
-    jg  potenciaXY
-elvadoACero:
-    mov r8,1
-ret
+    
+    cmp qword[rdx],1
+    je  opero
+caso0:
+    inc qword[aux]
+    inc qword[contador]
+    jmp sig
+
+opero: 
+    cmp qword[contador],0
+    je  caso0
+    mov rcx,qword[contador]
+    mov qword[Y2], rcx
+    jmp potenciaXY
+    mov rcx, qword[Y2]
+    mov qword[contador], rcx
+    inc qword[contador]
+    jmp sig
+
 potenciaXY:
-    imul r8,r9
-    dec qword[Y]
-    cmp qword[Y],0
+   ; inc rdx
+    
+    add qword[aux],2
+    dec qword[contador]
+
+    cmp qword[contador],0
     jnz potenciaXY
 
     ;terminó la cuenta así que muevo el resultado hacia la variable correspondiente
-
-    mov r12,r8
+   ; add qword[aux],rcx
+ ret
 sig:    
     add rsi,8
-    add qword[aux],r12
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-    call printf
-    inc qword[Y2]
+    
+    add qword[aux],2
+;    mov rcx, numeroFormato
+;    mov rdx,qword[aux]
+;    call printf
     jmp calcularExpoExceso
 ret    
 aConfHexa:
@@ -516,3 +488,21 @@ aConfHexa:
     mov rdx,qword[aux]
     call printf
 ret
+printGeneral:
+    mov     rcx,numeroFormato
+    mov     rdx,[vector+rsi]
+    call    printf
+
+    add rsi,8
+ret
+rellenarVector:
+    mov rdi,[inputNumeros]
+    mov [vector+rsi],rdi
+
+    add rsi,qword[aux]
+ret
+yo:
+add qword[aux],2
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+    call printf
