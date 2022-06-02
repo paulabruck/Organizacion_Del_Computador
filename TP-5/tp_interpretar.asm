@@ -30,10 +30,11 @@ section .data
     numeroFormato               db  '%lli',0
     stringFormato               db  '%s',0
     msgBase                     db  " X10 ^ ",0
-    msgcoma                     db  " , "
-    contador                           dq 0
+    msgcoma                     db  " , ",0
+    contador                    dq 0
     Y2                          dq 0
     aux                         dq 0
+    aux2                         dq 0
 
 section .bss
     opcionIngresada     resb 1
@@ -429,14 +430,14 @@ printFin:
 ret
 aConfBinaria:
     mov rsi,192
-    mov qword[contador],0
+  ;  mov qword[contador],0
 calcularExpoExceso:
     cmp rsi,224    
     jge aConfHexa
   
     mov rcx, numeroFormato
     mov rdx,[vector+rsi]
-    call printf
+   ; call printf
 
     cmp qword[vector+rsi],0
     je  sig
@@ -445,54 +446,51 @@ calcularExpoExceso:
 
 cont:
     mov rcx, numeroFormato
+    mov rdx,qword[aux2]
+    call printf
+    
+    mov rcx, numeroFormato
     mov rdx,qword[aux]
     call printf
+
+    mov rcx, qword[aux2]
+    mov qword[Y2],rcx
+
+    cmp qword[aux2],0
+    je  elevadoA0
+    cmp qword[aux2],1
+    je  elevadoA1
+    mov r8,2
+    mov r9,2
+    jmp potencia
+elevadoA0:
+    inc qword[aux]
+    jmp avanzo
+ret
+elevadoA1:
     add qword[aux],2
-   ; mov rcx, numeroFormato
-   ; mov rdx,qword[aux]
-    ;call printf
-  ;  cmp qword[rdx],0
-   ; je  sig
-   ; inc qword[aux]
-;opero: 
- ;   mov rcx,numeroFormato
-  ;  mov rdx, msgBienvenida
-   ; call printf
-;    cmp qword[contador],0
-;    je  caso0
- ;   mov rcx,qword[contador]
-  ;  mov qword[Y2], rcx
-   ; jmp potenciaXY
-    ;mov rcx, qword[Y2]
-    ;mov qword[contador], rcx
-    ;inc qword[contador]
-    ;jmp sig
-
-;potenciaXY:
-   ; inc rdx
+    jmp avanzo
+ret   
+potencia:
+    imul r8,r9
+    dec qword[aux2]
+    cmp qword[aux2],1
+    jne  potencia
+    add qword[aux],r8
     
- ;   add qword[aux],2
-  ;  dec qword[contador]
-
-   ; cmp qword[contador],0
-    ;jnz potenciaXY
-
-    ;terminó la cuenta así que muevo el resultado hacia la variable correspondiente
-   ; add qword[aux],rcx
- ;ret
+avanzo:   
+    mov rcx, qword[Y2]
+    mov qword[aux2],rcx
+    add qword[aux2],1
+ 
 sig:    
     add rsi,8
-    
-   ; add qword[aux],2
-;    mov rcx, numeroFormato
-;    mov rdx,qword[aux]
-;    call printf
     jmp calcularExpoExceso
 ret    
 aConfHexa:
-  ;  mov rcx, numeroFormato
-   ; mov rdx,qword[aux]
-    ;call printf
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+    call printf
 ret
 printGeneral:
     mov     rcx,numeroFormato
