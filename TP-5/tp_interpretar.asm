@@ -22,11 +22,13 @@ section .data
     posicion                    dq  1
     vectorHexa                  db  "0123456789ABCDEF"
     vector                      times 32 dq 1
+    vectorResultado             times 32 dq 1
     msgLetrasMay                db  "(Ingresar las letras en Mayuscula)",0
     msgProxNum                  db  "~~Proximo Digito: ",0
     msgnumBina                  db  "~~Numero binario ingresado valido -------> ",0
     msgnumHexa                  db  "~~Numero hexadecimal ingresado valido -------> ",0
     msgNotCien                  db  "~~La Notacion cientifica normalizada en base 2 ingresada es ------->",0
+    msgRNCBin                   db  "~~Resultado configuracion binaria~~",0
     numeroFormato               db  '%lli',0
     stringFormato               db  '%s',0
     msgBase                     db  " X10 ^ ",0
@@ -335,7 +337,7 @@ ingresarCoeficiente:
 
 	cmp		rax,1
 	jl		errorIngresoOpcion
-    call    validarBinario
+   ; call    validarBinario
     call    agregarNCAVector
     jmp     ingresarCoeficiente
     mov     rsi,192
@@ -399,7 +401,20 @@ agregarNCAVector:
 
     add rsi,8
 ret   
-
+signoNegativo:
+    mov rsi,0
+    mov rdi,1
+    mov [vectorResultado+rsi],rdi
+  ;  add rsi,8
+    jmp printComa
+ret
+signoPositivo:
+    mov rsi,0
+    mov rdi,0
+    mov [vectorResultado+rsi],rdi
+   ; add rsi,8
+   jmp printComa
+ret
 printNCienti:
     mov rcx, msgNotCien
     call printf
@@ -408,14 +423,25 @@ printAntesComa:
     cmp rsi,8
     jge printComa
     call printGeneral
+    cmp qword[vector+rsi],-1
+    je signoNegativo
+    cmp qword[vector+rsi],1
+    je signoPositivo
+
 printComa:
     mov rcx, msgcoma
     call printf
     mov rsi,8
+    mov rbx,72
 printCoef:
     cmp rsi,192
     jge  printBase
     call printGeneral
+    
+    mov rdi,[vector+rsi]
+    mov qword[vectorResultado+rbx],rdi
+
+    add rbx,8
     jmp printCoef
 printBase:
     mov rcx, msgBase
@@ -483,16 +509,85 @@ ret
 expoExceso:
     mov rcx, numeroFormato
     mov rdx,qword[aux]
-    call printf
+   ; call printf
 
     add qword[aux],127
     mov rcx, numeroFormato
     mov rdx,qword[aux]
-    call printf
+  ;  call printf
+ 
+pasarDecABina:
+    mov qword[aux2],2
+    mov rsi,0
+    mov rbx,8
+ ;   mov rcx, numeroFormato
+  ;  mov rdx,qword[aux2]
+   ; call printf
 
+   ; mov rcx, numeroFormato
+    ;mov rdx,qword[aux]
+    ;call printf
+
+   
+divido:    
+    cmp     qword[aux],2
+    jl      termine
+    mov     rax,qword[aux] ;lo q voy a dividir 
+    sub     rdx,rdx
+    idiv    qword[aux2] ; divido por 2 
+  ;  mov     qword[Y2],rdx
+    inc     qword[contador]
+
+    mov qword[aux],rax
+  ;  mov rcx, numeroFormato
+   ; mov rdx,rdx;qword[Y2]
+    ;call printf
+    ;mov rcx, msgenter
+    ;call puts
+    mov rdi,rdx
+    mov [vector+rsi],rdi
+    
+    add rsi,8
+    jmp divido
+termine:
+ ;   mov rcx, numeroFormato
+  ;  mov rdx, qword[aux]
+   ; call printf
+   mov rdi,qword[aux]
+    mov [vector+rsi],rdi
+    add rsi,8
+     mov rcx, msgenter
+    call puts
+    mov rcx, numeroFormato
+    mov rdx, qword[contador]
+   ; call printf
+    mov rsi,56
+    mov rbx,8
+ver:
+    cmp rsi, 0
+    jl aConfHexa
+    mov     rcx,numeroFormato
+    mov     rdx,[vector+rsi]
+    mov [vectorResultado+rbx],rdx
+    add rbx,8
+   ; call    printf
+    sub rsi,8
+    jmp ver
 ret
 aConfHexa:
-   
+    mov rsi,0
+    mov rcx, msgRNCBin
+    call puts
+ver2:
+    cmp rsi, 256
+    jge end
+    mov     rcx,numeroFormato
+    mov     rdx,[vectorResultado+rsi]
+    call    printf
+    add rsi,8
+    jmp ver2
+ret
+end:
 ret
 printGeneral:
     mov     rcx,numeroFormato
