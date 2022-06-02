@@ -429,30 +429,23 @@ printExpo:
 printFin:
 ret
 aConfBinaria:
-    mov rsi,192
+    mov rsi,216
   ;  mov qword[contador],0
 calcularExpoExceso:
-    cmp rsi,224    
-    jge aConfHexa
-  
+;-----------------------------------------------------------;
+; Pasar binario a  decimal                                  ;
+;-----------------------------------------------------------;
+pasarBinaADec:
+    cmp rsi,184    
+    jle expoExceso
     mov rcx, numeroFormato
-    mov rdx,[vector+rsi]
+    mov rdx,qword[vector+rsi]
    ; call printf
-
     cmp qword[vector+rsi],0
-    je  sig
+    je  avanzo
     cmp qword[vector+rsi],1
     je  cont
-
 cont:
-    mov rcx, numeroFormato
-    mov rdx,qword[aux2]
-    call printf
-    
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-    call printf
-
     mov rcx, qword[aux2]
     mov qword[Y2],rcx
 
@@ -484,13 +477,22 @@ avanzo:
     add qword[aux2],1
  
 sig:    
-    add rsi,8
+    sub rsi,8
     jmp calcularExpoExceso
 ret    
-aConfHexa:
+expoExceso:
     mov rcx, numeroFormato
     mov rdx,qword[aux]
     call printf
+
+    add qword[aux],127
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+    call printf
+
+ret
+aConfHexa:
+   
 ret
 printGeneral:
     mov     rcx,numeroFormato
