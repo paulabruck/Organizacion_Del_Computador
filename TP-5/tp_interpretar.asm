@@ -23,12 +23,15 @@ section .data
     vectorHexa                  db  "0123456789ABCDEF"
     vector                      times 32 dq 1
     vectorResultado             times 32 dq 1
+    vectorAux                   times 32 dq 1
     msgLetrasMay                db  "(Ingresar las letras en Mayuscula)",0
     msgProxNum                  db  "~~Proximo Digito: ",0
     msgnumBina                  db  "~~Numero binario ingresado valido -------> ",0
     msgnumHexa                  db  "~~Numero hexadecimal ingresado valido -------> ",0
     msgNotCien                  db  "~~La Notacion cientifica normalizada en base 2 ingresada es ------->",0
     msgRNCBin                   db  "~~Resultado configuracion binaria~~",0
+    msgRNCHexa                  db  "~~Resultado configuracion Hexadecimal~~",0
+    msgRBANC                    db  "~~Resultado Notacion cinetifica~~",0
     numeroFormato               db  '%lli',0
     stringFormato               db  '%s',0
     msgBase                     db  " X10 ^ ",0
@@ -234,7 +237,7 @@ ret
 agregarAVector:
     mov rdi,[opcion]
     mov [vector+rsi],rdi
-
+    mov [vectorAux+rsi],rdi
     add rsi,8
 
     jmp ingresoBinario
@@ -249,6 +252,200 @@ printearNumeros:
     call  printGeneral
     jmp printearNumeros
 vectorPrinteado:
+    mov rcx, msgenter
+    call puts
+extraerExpoExce:
+    mov rsi,64
+calcularExpoExceso2:
+pasarBinaADec2:
+    cmp rsi,8   
+    jl expoExceso2
+    mov rcx, numeroFormato
+    mov rdx,qword[vector+rsi]
+  ;  call printf
+    
+    mov rcx, qword[aux2]
+    mov qword[Y2],rcx
+    cmp qword[vector+rsi],0
+    je  avanzo2
+    cmp qword[vector+rsi],1
+    je  cont2
+cont2:
+  ;  mov rcx, qword[aux2]
+   ; mov qword[Y2],rcx
+
+    cmp qword[aux2],0
+    je  elevadoA02
+    cmp qword[aux2],1
+    je  elevadoA12
+    mov r8,2
+    mov r9,2
+    jmp potencia2
+elevadoA02:
+    inc qword[aux]
+    jmp avanzo2
+ret
+elevadoA12:
+    add qword[aux],2
+    jmp avanzo2
+ret   
+potencia2:
+    imul r8,r9
+    dec qword[aux2]
+    cmp qword[aux2],1
+    jne  potencia2
+    add qword[aux],r8
+    
+avanzo2:   
+    mov rcx, qword[Y2]
+    mov qword[aux2],rcx
+    add qword[aux2],1
+ 
+sig2:    
+    sub rsi,8
+    mov rcx, numeroFormato
+    mov rdx, qword[aux]
+   ; call printf
+    
+    jmp calcularExpoExceso2
+ret    
+expoExceso2:
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+  ;  call printf
+
+    sub qword[aux],127
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+   ; call printf
+lopasoABina:
+pasarDecABina2:
+    mov qword[aux2],2
+    mov rsi,0
+    mov rbx,8
+ ;   mov rcx, numeroFormato
+  ;  mov rdx,qword[aux2]
+   ; call printf
+
+   ; mov rcx, numeroFormato
+    ;mov rdx,qword[aux]
+    ;call printf
+
+   
+divido2:    
+    cmp     qword[aux],2
+    jl      termine2
+    mov     rax,qword[aux] ;lo q voy a dividir 
+    sub     rdx,rdx
+    idiv    qword[aux2] ; divido por 2 
+  ;  mov     qword[Y2],rdx
+    inc     qword[contador]
+
+    mov qword[aux],rax
+  ;  mov rcx, numeroFormato
+   ; mov rdx,rdx;qword[Y2]
+    ;call printf
+    ;mov rcx, msgenter
+    ;call puts
+    mov rdi,rdx
+    mov [vector+rsi],rdi
+    
+    add rsi,8
+    jmp divido2
+termine2:
+ ;   mov rcx, numeroFormato
+  ;  mov rdx, qword[aux]
+   ; call printf
+   mov rdi,qword[aux]
+    mov [vector+rsi],rdi
+    add rsi,8
+     mov rcx, msgenter
+    call puts
+    mov rcx, numeroFormato
+    mov rdx, qword[contador]
+   ; call printf
+    mov rsi,56
+    mov rbx,8
+ver222:
+    cmp rsi, 0
+    jl aver2
+    mov     rcx,numeroFormato
+    mov     rdx,[vector+rsi]
+    mov [vectorResultado+rbx],rdx
+    add rbx,8
+   ; call    printf
+    sub rsi,8
+    jmp ver222
+ret
+aver2:
+   
+    mov rcx, msgRNCBin
+ ;   call puts
+     mov rsi,8
+ver221:
+    cmp rsi, 72
+    jge end2
+    mov     rcx,numeroFormato
+    mov     rdx,[vectorResultado+rsi]
+   ; call    printf
+    add rsi,8
+    jmp ver221
+ret
+signoNegativoC:
+    mov     rcx,numeroFormato
+    mov     rdx,-1
+    call    printf
+    jmp comaa
+signoPositivoC:
+    mov     rcx,numeroFormato
+    mov     rdx,1
+    call    printf
+    jmp comaa
+end2:
+    mov rcx,msgenter
+    call puts
+    mov rcx, msgRBANC
+    call puts
+    mov rsi,0
+    mov     rcx,numeroFormato
+    mov     rdx,[vectorAux+rsi]
+    cmp rdx,0
+    je signoPositivoC
+
+    cmp rdx,1
+    je signoNegativoC
+comaa:
+   mov rcx, stringFormato
+   mov rdx, msgcoma
+   call printf
+   mov rsi,72
+otra:
+    cmp rsi,256
+    jge  fin
+    mov     rcx,numeroFormato
+    mov     rdx,[vectorAux+rsi]
+    call    printf
+    add rsi,8
+    jmp otra
+ret
+
+fin:
+    mov rcx, stringFormato
+    mov rdx, msgBase
+    call printf
+    mov rsi,8
+    jmp expooo
+ret
+expooo:
+    cmp rsi,72
+    jge u
+     mov     rcx,numeroFormato
+    mov     rdx,[vectorResultado+rsi]
+    call    printf
+    add rsi,8
+    jmp expooo
+ret
+u:
 ret
 ;-----------------------------------------------------------;
 ;  configuracion hexadeciaml a notacion cientifica          ;
@@ -295,25 +492,9 @@ printearHexa:
     add rsi,4
     jmp printearHexa
 vectorHexaPrinteado:
- ;   mov rsi,0
- ;   jmp convertirHexaABinario
+ 
 ret
-;aBinario:
-;    cmp rdx,'1'
-;    je  
-;ret
-;convertirHexaABinario:
-;    cmp rsi,32
-;    jge  vectorPrinteado
 
-;    mov rcx,stringFormato
-;    lea rdx,[vector+rsi]
-;    call    aBinario
-;    call    printf
-
-;    add rsi,4
-;    jmp convertirHexaABinario
-;ret
 ;-----------------------------------------------------------;
 ; Pasar Notacion cientifica a configuracion                 ;
 ;-----------------------------------------------------------;
@@ -511,7 +692,7 @@ sig:
     sub rsi,8
     mov rcx, numeroFormato
     mov rdx, qword[aux]
-    call printf
+  ;  call printf
     
     jmp calcularExpoExceso
 ret    
@@ -662,7 +843,7 @@ ret
 impri:    
     mov rcx, numeroFormato
     mov rdx,qword[aux]
-    call printf
+  ;  call printf
 pasarDeciAHexa:
     mov qword[aux2],16 
     mov rsi,0
@@ -894,7 +1075,7 @@ sigo:
     mov [vector+rsi],rdi
     add rsi,4
      mov rcx, msgenter
-   call puts
+   ;call puts
     mov rcx, numeroFormato
     mov rdx, qword[contador]
    ; call printf
@@ -914,8 +1095,8 @@ ver1:
 ret
 aver1:
     mov rsi,36;0
-    mov rcx, msgRNCBin
-  ;  call puts
+    mov rcx, msgRNCHexa
+     call puts
 ver21:
     cmp rsi, 0;36
     jl end1
