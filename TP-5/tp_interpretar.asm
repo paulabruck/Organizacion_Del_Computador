@@ -666,51 +666,8 @@ impri:
 pasarDeciAHexa:
     mov qword[aux2],16 
     mov rsi,0
-    mov rbx,8
-convertir:
-    mov rcx,numeroFormato
-    mov rdx,rdi
-    call printf
-  ;  cmp rdx,10
-   ; je esA
-    ;cmp rdx,11
-    ;je esB
-    ;cmp rdx,12
-    ;je esC
-    ;cmp rdx,13
-    ;je esD
-    ;cmp rdx,14
-    ;je esE
-    cmp rdi,1
-    je esF
-ret
-esA:
-    mov rdx,'A'
-    jmp agregoo
-ret
-esB:
-    mov rdx,'B'
-    jmp agregoo
-ret
-esC:
-    mov rdx,'C'
-    jmp agregoo
-ret
-esD:
-    mov rdx,'D'
-jmp agregoo
-ret
-esE:
-    mov rdx,'E'
-jmp agregoo
-ret
-esF:
-    mov rdx,'F'
-    mov rcx,msgBase
-    call puts
-    jmp agregoo
+    mov rbx,4
 
-ret
 divido1:    
     cmp     qword[aux],16
     jl      termine1
@@ -722,37 +679,227 @@ divido1:
 
      mov qword[aux],rax
   ;  mov rcx, numeroFormato
-   ; mov rdx,rdx;qword[Y2]
+    mov rdx,rdx;qword[Y2]
     ;call printf
     ;mov rcx, msgenter
     ;call puts
-    mov rdi,rdx
+  ;  mov qword[aux3],rdx
    ; mov [vector+rsi],rdi
-    cmp rdi,9
-    jg  convertir
-
- agregoo:  
-     
+  
+    ; mov rdx,qword[aux3]
   ;  lea rdx,[vector+rsi]
     mov rdi,rdx
+    cmp rdi,9
+    jg convertir
+    jmp conversionN
+    
+agregoo:
     mov [vector+rsi],rdi
     
     add rsi,4
     jmp divido1
+convertir:
+    mov rcx,numeroFormato
+    mov rdx,rdi
+    ;call printf
+    cmp rdi,10
+    je esA
+    cmp rdi,11
+    je esB
+    cmp rdi,12
+    je esC
+    cmp rdi,13
+    je esD
+    cmp rdi,14
+    je esE
+    cmp rdi,15
+    je esF
+ret
+esA:
+    mov rdi,'A'
+    jmp agregoo
+ret
+esB:
+    mov rdi,'B'
+    jmp agregoo
+ret
+esC:
+    mov rdi,'C'
+    jmp agregoo
+ret
+esD:
+    mov rdi,'D'
+jmp agregoo
+ret
+esE:
+    mov rdi,'E'
+jmp agregoo
+ret
+esF:
+    mov rdi,'F'
+    jmp agregoo
+
+ret
+conversionN:
+    cmp rdi,1
+    je  es1
+    cmp rdi,2
+    je  es2
+    cmp rdi,3
+    je  es3
+    cmp rdi,4
+    je  es4
+    cmp rdi,5
+    je  es5
+    cmp rdi,6
+    je  es6
+    cmp rdi,7
+    je  es7
+    cmp rdi,8
+    je  es8
+    cmp rdi,9
+    je  es9
+    cmp rdi,0
+    je es0
+ret
+es0:
+mov rdi,'0'
+jmp agregoo
+es1:
+    mov rdi,'1'
+    jmp agregoo
+es2:
+mov rdi,'2'
+jmp agregoo
+es3:
+mov rdi,'3'
+jmp agregoo
+es4:
+mov rdi,'4'
+jmp agregoo
+es5:
+mov rdi,'5'
+jmp agregoo
+es6:
+mov rdi,'6'
+jmp agregoo
+es7:
+mov rdi,'7'
+jmp agregoo
+es8:
+mov rdi,'8'
+jmp agregoo
+es9:
+mov rdi,'9'
+jmp agregoo
+
+convertir1:
+    mov rcx,numeroFormato
+    mov rdx,rdi
+    ;call printf
+     cmp rdi,1
+    je  es11
+    cmp rdi,2
+    je  es21
+    cmp rdi,3
+    je  es31
+    cmp rdi,4
+    je  es41
+    cmp rdi,5
+    je  es51
+    cmp rdi,6
+    je  es61
+    cmp rdi,7
+    je  es71
+    cmp rdi,8
+    je  es81
+    cmp rdi,9
+    je  es91
+    cmp rdi,0
+    je es01
+    cmp rdi,10
+    je esA11
+    cmp rdi,11
+    je esB1
+    cmp rdi,12
+    je esC1
+    cmp rdi,13
+    je esD1
+    cmp rdi,14
+    je esE1
+    cmp rdi,15
+    je esF1
+ret
+esA11:
+    mov rdi,'A'
+    jmp sigo
+
+esB1:
+    mov rdi,'B'
+    jmp sigo
+
+esC1:
+    mov rdi,'C'
+    jmp sigo
+esD1:
+    mov rdi,'D'
+
+jmp sigo
+esE1:
+    mov rdi,'E'
+
+jmp sigo
+esF1:
+    mov rdi,'F'
+    jmp sigo
+
+es01:
+mov rdi,'0'
+jmp sigo
+es11:
+    mov rdi,'1'
+    jmp sigo
+es21:
+mov rdi,'2'
+jmp sigo
+es31:
+mov rdi,'3'
+jmp sigo
+es41:
+mov rdi,'4'
+jmp sigo
+es51:
+mov rdi,'5'
+jmp sigo
+es61:
+mov rdi,'6'
+jmp sigo
+es71:
+mov rdi,'7'
+jmp sigo
+es81:
+mov rdi,'8'
+jmp sigo
+es91:
+mov rdi,'9'
+jmp sigo
+
 termine1:
- ;   mov rcx, numeroFormato
-  ;  mov rdx, qword[aux]
+    mov rcx, numeroFormato
+    mov rdx, qword[aux]
    ; call printf
-   mov rdi,qword[aux]
+    mov rdi,qword[aux]
+    jmp convertir1
+sigo:  
     mov [vector+rsi],rdi
-    add rsi,8
+    add rsi,4
      mov rcx, msgenter
    call puts
     mov rcx, numeroFormato
     mov rdx, qword[contador]
    ; call printf
-    mov rsi,56
-    mov rbx,8
+    mov rsi,27
+    mov rbx,4
 ver1:
     cmp rsi, 0
     jl aver1
@@ -760,27 +907,26 @@ ver1:
    ; mov     rdx,[vector+rsi]
     lea rdx,[vector+rsi]
     mov [vectorResultado+rbx],rdx
-    add rbx,8
+    add rbx,4
     ;call    printf
-    sub rsi,8
+    sub rsi,4
     jmp ver1
 ret
 aver1:
-    mov rsi,0
+    mov rsi,36;0
     mov rcx, msgRNCBin
   ;  call puts
 ver21:
-    cmp rsi, 72
-    jge end1
+    cmp rsi, 0;36
+    jl end1
     mov     rcx,stringFormato
   ;  mov     rdx,[vectorResultado+rsi]
     lea rdx,[vector+rsi]
     call    printf
-    add rsi,8
+    sub rsi,4
     jmp ver21
 ret
 end1:
-ret
 ret
 printGeneral:
     mov     rcx,numeroFormato
