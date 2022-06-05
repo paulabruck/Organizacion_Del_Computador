@@ -12,7 +12,8 @@ section .data
     msgSubOpcion1               db  "~~Ingresar configuracion a interpretar~~",0
     msgSubOpcion11              db  "(1) Binaria",0
     msgSubOpcion12              db  "(2) Hexadecimal",0
-    msgIngConf                  db  "~~Ingrese digito a digito por linea segun configuracion elegida~~",0     
+    msgIngConf                  db  "~~Ingrese digito a digito por linea segun configuracion elegida~~",0   
+    msgInfoEspacio              db  "(SI NO SE INGRESA UN DIGITO SE CONSIDERARA COMO UN 1 EN CASO DE SER EL PRIMER DIGITO O COMO EL ULTIMO DIGITO INGRESADO)",0  
     msgSubOpcion2               db  "~~Ingresar notacion cientifica a interpretar~~",0
     msgIngCoef                  db  "~~Ingresar Coeficiente:  ",0
     msgIngExpo                  db  "~~Ingresar exponente:  ",0
@@ -56,12 +57,16 @@ accionARealizar:
 
     cmp		qword[opcion],2
     je      accion2    
-
 ret
 ;----------------------------------------------------------------------;
 ; Brinda opciones al usuario para poder definir la accion a realizar   ;
 ;----------------------------------------------------------------------;
 menu:
+    mov  	rcx,msgenter
+	sub     rsp,32
+	call 	puts
+    add     rsp,32
+
     mov  	rcx,msgBienvenida
     sub     rsp,32
 	call 	puts
@@ -90,7 +95,9 @@ menu:
     mov 	rcx,opcionIngresada
 	mov		rdx,numeroFormato
 	mov 	r8,opcion
+    sub     rsp,32
 	call	sscanf
+    add     rsp,32
 	
 	cmp		rax,1
 	jl		errorIngresoOpcion
@@ -99,7 +106,6 @@ menu:
     
     jmp     accionARealizar
 ret
-
 ;-----------------------------------------------------------;
 ; Avisa al usuario el error y le pide que ingrese nuevamente;
 ;-----------------------------------------------------------;
@@ -110,7 +116,9 @@ errorIngresoOpcion:
     add     rsp,32
 
     mov     rcx,msgenter
+    sub     rsp,32
     call    puts
+    add     rsp,32
 
     jmp     menu
 ret
@@ -196,6 +204,11 @@ ret
 ; visualizar configuracion en notacion cientifica           ;
 ;-----------------------------------------------------------; 
 accion1:
+    mov  	rcx,msgenter
+	sub     rsp,32
+	call 	puts
+    add     rsp,32
+
     mov  	rcx,msgSubOpcion1
 	sub     rsp,32
 	call 	puts
@@ -212,18 +225,27 @@ accion1:
     add     rsp,32
 
     mov     rcx,opcionIngresada
+    sub     rsp,32
     call    gets
+    add     rsp,32
 
     mov 	rcx,opcionIngresada
 	mov		rdx,numeroFormato
 	mov 	r8,opcion
+	sub     rsp,32
 	call	sscanf
+    add     rsp,32
 
 	cmp		rax,1
 	jl		errorIngresoOpcion
 
 	call 	validarOpcion
    
+    mov  	rcx,msgenter
+	sub     rsp,32
+	call 	puts
+    add     rsp,32
+
     mov  	rcx,msgIngConf
 	sub     rsp,32
 	call 	puts
@@ -235,242 +257,292 @@ accion1:
     cmp     word[opcion],2
     je      esHexadecimal
 ;-----------------------------------------------------------;
-; configuracion binaria a     notacion cientifica           ;
+; configuracion binaria a notacion cientifica               ;
 ;-----------------------------------------------------------;
 esBinario:
-    mov rsi,0
+    mov  	rcx,msgInfoEspacio
+	sub     rsp,32
+	call 	puts
+    add     rsp,32
+
+    mov     rsi,0
 ingresoBinario:
     cmp     rsi,256
     jge     binarioValido
 
 	mov		rcx,msgProxDigi	
-	call	printf					
+    sub     rsp,32
+	call	printf	
+    add     rsp,32				
 
     mov     rcx,inputNumeros
     sub     rsp,32
     call    gets
     add     rsp,32
 
-    mov rcx,inputNumeros
-    mov rdx,numeroFormato
-    mov r8,opcion
-    call sscanf
+    mov     rcx,inputNumeros
+    mov     rdx,numeroFormato
+    mov     r8,opcion
+    sub     rsp,32
+    call    sscanf
+    add     rsp,32
 
-    cmp rax,1
-    jl errorIngresoOpcion
-    call validarBinario
-    jmp agregarAVector
+    cmp     rax,1
+    jl      errorIngresoOpcion
+
+    call    validarBinario
+
+    jmp     agregarAVector
 ret
 agregarAVector:
-    mov rdi,[opcion]
-    mov [vector+rsi],rdi
-    mov [vectorAux+rsi],rdi
-    add rsi,8
+    mov     rdi,[opcion]
+    mov     [vector+rsi],rdi
+    mov     [vectorAux+rsi],rdi
+    add     rsi,8
 
-    jmp ingresoBinario
+    jmp     ingresoBinario
 ret
 binarioValido:
     mov     rsi,0
-    mov		rcx,msgnumBina	
-	call	printf	
-printearNumeros:
-    cmp  rsi,256
-    jge  vectorPrinteado
-    call  printGeneral
-    jmp printearNumeros
-vectorPrinteado:
-    mov rcx, msgenter
-    call puts
-extraerExpoExce:
-    mov rsi,64
-calcularExpoExceso2:
-pasarBinaADec2:
-    cmp rsi,8   
-    jl expoExceso2
-    mov rcx, numeroFormato
-    mov rdx,qword[vector+rsi]
-  ;  call printf
-    
-    mov rcx, qword[aux2]
-    mov qword[aux0],rcx
-    cmp qword[vector+rsi],0
-    je  avanzo2
-    cmp qword[vector+rsi],1
-    je  cont2
-cont2:
-  ;  mov rcx, qword[aux2]
-   ; mov qword[aux0],rcx
 
-    cmp qword[aux2],0
-    je  elevadoA02
-    cmp qword[aux2],1
-    je  elevadoA12
-    mov r8,2
-    mov r9,2
-    jmp potencia2
+    mov		rcx,msgnumBina
+    add     rsp,32
+	call	printf	
+    sub     rsp,32
+printearNumeros:
+    cmp     rsi,256
+
+    jge     vectorPrinteado
+
+    call    printGeneral
+
+    jmp     printearNumeros
+vectorPrinteado:
+    mov     rcx, msgenter
+    add     rsp,32
+    call    puts
+    sub     rsp,32
+extraerExpoExce:
+    mov     rsi,64
+pasarBinaADec2:
+    cmp     rsi,8   
+    jl      expoExceso2
+
+;    mov rcx, numeroFormato
+;    mov rdx,qword[vector+rsi]
+;    call printf
+    
+    mov     rcx, qword[aux2]
+    mov     qword[aux0],rcx
+
+    cmp     qword[vector+rsi],0
+    je      avanzo2
+    cmp     qword[vector+rsi],1
+    je      cont2
+cont2:
+    cmp     qword[aux2],0
+    je      elevadoA02
+    cmp     qword[aux2],1
+    je      elevadoA12
+
+    mov     r8,2
+    mov     r9,2
+
+    jmp     potencia2
 elevadoA02:
-    inc qword[aux]
-    jmp avanzo2
+    inc     qword[aux]
+
+    jmp     avanzo2
 ret
 elevadoA12:
-    add qword[aux],2
-    jmp avanzo2
+    add     qword[aux],2
+
+    jmp     avanzo2
 ret   
 potencia2:
-    imul r8,r9
-    dec qword[aux2]
-    cmp qword[aux2],1
-    jne  potencia2
-    add qword[aux],r8
-    
+    imul    r8,r9
+    dec     qword[aux2]
+
+    cmp     qword[aux2],1
+    jne     potencia2
+
+    add     qword[aux],r8
 avanzo2:   
-    mov rcx, qword[aux0]
-    mov qword[aux2],rcx
-    add qword[aux2],1
- 
-sig2:    
-    sub rsi,8
-    mov rcx, numeroFormato
-    mov rdx, qword[aux]
-   ; call printf
+    mov     rcx, qword[aux0]
+    mov     qword[aux2],rcx
     
-    jmp calcularExpoExceso2
+    add     qword[aux2],1
+sig2:    
+    sub     rsi,8
+
+;    mov rcx, numeroFormato
+;    mov rdx, qword[aux]
+;    call printf  
+    jmp     pasarBinaADec2
 ret    
 expoExceso2:
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-  ;  call printf
-
-    sub qword[aux],127
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-   ; call printf
-lopasoABina:
+;    mov rcx, numeroFormato
+;    mov rdx,qword[aux]
+;    call printf
+    sub     qword[aux],127
+;    mov rcx, numeroFormato
+;    mov rdx,qword[aux]
+;    call printf
 pasarDecABina2:
-    mov qword[aux2],2
-    mov rsi,0
-    mov rbx,8
- ;   mov rcx, numeroFormato
-  ;  mov rdx,qword[aux2]
-   ; call printf
-
-   ; mov rcx, numeroFormato
-    ;mov rdx,qword[aux]
-    ;call printf
-
-   
+    mov     qword[aux2],2
+    mov     rsi,0
+    mov     rbx,8
+;   mov rcx, numeroFormato
+;   mov rdx,qword[aux2]
+;   call printf
+;   mov rcx, numeroFormato
+;   mov rdx,qword[aux]
+;   call printf
 divido2:    
     cmp     qword[aux],2
     jl      termine2
+
     mov     rax,qword[aux] ;lo q voy a dividir 
     sub     rdx,rdx
     idiv    qword[aux2] ; divido por 2 
-  ;  mov     qword[aux0],rdx
+
     inc     qword[contador]
 
-    mov qword[aux],rax
-  ;  mov rcx, numeroFormato
-   ; mov rdx,rdx;qword[aux0]
-    ;call printf
-    ;mov rcx, msgenter
-    ;call puts
-    mov rdi,rdx
-    mov [vector+rsi],rdi
-    
-    add rsi,8
-    jmp divido2
+    mov     qword[aux],rax
+;   mov rcx, numeroFormato
+;   mov rdx,rdx;qword[aux0]
+;   call printf
+    mov     rdi,rdx
+    mov     [vector+rsi],rdi ; agregar a vector
+    add     rsi,8
+
+    jmp     divido2
 termine2:
- ;   mov rcx, numeroFormato
-  ;  mov rdx, qword[aux]
-   ; call printf
-   mov rdi,qword[aux]
-    mov [vector+rsi],rdi
-    add rsi,8
-     mov rcx, msgenter
-    call puts
-    mov rcx, numeroFormato
-    mov rdx, qword[contador]
-   ; call printf
-    mov rsi,56
-    mov rbx,8
+;   mov rcx, numeroFormato
+;   mov rdx, qword[aux]
+;   call printf
+    mov     rdi,qword[aux]
+    mov     [vector+rsi],rdi ; agrego ultimo pedazo a vector 
+    add     rsi,8
+
+    mov     rcx, msgenter
+    add     rsp, 32
+    call    puts
+    sub     rsp, 32
+
+;   mov rcx, numeroFormato
+;   mov rdx, qword[contador]
+;   call printf
+    mov     rsi,56
+    mov     rbx,8
 ver222:
-    cmp rsi, 0
-    jl aver2
-    mov     rcx,numeroFormato
+    cmp     rsi,0
+    jl      end2;aver2
+
+;   mov     rcx,numeroFormato
     mov     rdx,[vector+rsi]
-    mov [vectorResultado+rbx],rdx
-    add rbx,8
-   ; call    printf
-    sub rsi,8
-    jmp ver222
+    mov     [vectorResultado+rbx],rdx
+    add     rbx,8
+;   call    printf
+    sub     rsi,8
+
+    jmp     ver222
 ret
-aver2:
-   
-    mov rcx, msgRNCBin
- ;   call puts
-     mov rsi,8
-ver221:
-    cmp rsi, 72
-    jge end2
-    mov     rcx,numeroFormato
-    mov     rdx,[vectorResultado+rsi]
-   ; call    printf
-    add rsi,8
-    jmp ver221
-ret
+;aver2:
+;   mov rcx, msgRNCBin
+;   call puts
+;   mov     rsi,8
+;ver221:
+;    cmp     rsi,72
+;    jge     end2
+
+;   mov     rcx,numeroFormato
+;   mov     rdx,[vectorResultado+rsi]
+;   call    printf
+;    add rsi,8
+;    jmp ver221
+;ret
 signoNegativoC:
     mov     rcx,numeroFormato
     mov     rdx,-1
+
+    add     rsp,32
     call    printf
-    jmp comaa
+    sub     rsp,32
+
+    jmp     comaa
 signoPositivoC:
     mov     rcx,numeroFormato
     mov     rdx,1
+
+    add     rsp,32
     call    printf
-    jmp comaa
+    sub     rsp,32
+
+    jmp     comaa
 end2:
-    mov rcx,msgenter
-    call puts
-    mov rcx, msgRBANC
-    call puts
-    mov rsi,0
-    mov     rcx,numeroFormato
-    mov     rdx,[vectorAux+rsi]
-    cmp rdx,0
-    je signoPositivoC
+    mov     rcx,msgenter
+    add     rsp,32
+    call    puts
+    sub     rsp,32
 
-    cmp rdx,1
-    je signoNegativoC
+    mov     rcx, msgRBANC
+    add     rsp,32
+    call    puts
+    sub     rsp,32
+
+    mov     rsi,0
+;    mov     rcx,numeroFormato
+    mov     rdx,[vectorAux+rsi]
+
+    cmp     rdx,0
+    je      signoPositivoC
+    cmp     rdx,1
+    je      signoNegativoC
 comaa:
-   mov rcx, stringFormato
-   mov rdx, msgcoma
-   call printf
-   mov rsi,72
+   mov      rcx, stringFormato
+   mov      rdx, msgcoma
+   add      rsp,32
+   call     printf
+   sub      rsp,32
+
+   mov      rsi,72
 otra:
-    cmp rsi,256
-    jge  fin
+    cmp     rsi,256
+    jge     fin
+
     mov     rcx,numeroFormato
     mov     rdx,[vectorAux+rsi]
+    add     rsp,32
     call    printf
-    add rsi,8
-    jmp otra
-ret
+    sub     rsp,32
 
+    add     rsi,8
+    jmp     otra
+ret
 fin:
-    mov rcx, stringFormato
-    mov rdx, msgBase
-    call printf
-    mov rsi,8
-    jmp expooo
+    mov     rcx, stringFormato
+    mov     rdx, msgBase
+    add     rsp,32
+    call    printf
+    sub     rsp,32
+
+    mov     rsi,8
+
+    jmp     expooo
 ret
 expooo:
-    cmp rsi,72
-    jge u
-     mov     rcx,numeroFormato
+    cmp     rsi,72
+    jge     u
+
+    mov     rcx,numeroFormato
     mov     rdx,[vectorResultado+rsi]
+    add     rsp,32
     call    printf
-    add rsi,8
-    jmp expooo
+    sub     rsp, 32
+
+    add     rsi,8
+    jmp     expooo
 ret
 u:
 ret
@@ -478,196 +550,178 @@ ret
 ;  configuracion hexadeciaml a notacion cientifica          ;
 ;-----------------------------------------------------------;
 esHexadecimal:
-    mov rsi,0
-     mov rbx,0
-    mov rcx, msgLetrasMay
-    call puts
+    mov     rsi,0
+    mov     rbx,0
+
+    mov     rcx, msgLetrasMay
+    add     rsp,32
+    call    puts
+    sub     rsp,32
 ingresoHexadecimal:
     cmp     rsi,32
     jge     hexadecimalValido
 
 	mov		rcx,msgProxDigi	
-	call	printf					
+    add     rsp,32
+	call	printf
+    sub     rsp,32					
 
     mov     rcx,inputNumeros
+    add     rsp,32
     call    gets
+    sub     rsp,32
+;    mov     rcx, inputNumeros
+;    call    puts
 
-    mov     rcx, inputNumeros
-  ;  call    puts
-
-    call validarHexadecimal
-
+    call    validarHexadecimal
 ret
 agregarHexaAVector:
-   
-    mov qword[aux],4
-    call rellenarVector
-;   mov rdx,0
-
+    mov     qword[aux],4
+    call    rellenarVector
 pasarHexaADeci:
-   jmp traducir
-listo:
-  ;  mov rcx,numeroFormato
-   ; call printf
-   ; cmp qword[aux4],2
-    ;je leo2
-    ;cmp qword[aux4],1
-    ;je leo1
-;esta:  
-    mov rcx, numeroFormato
-    mov rdx,[inputNumeros]
-    mov [vectorNuevo+rbx],rdx
-    add rbx,8
+    jmp     traducir
+listo: 
+;   mov rcx, numeroFormato
+    mov     rdx,[inputNumeros]
+    mov     [vectorNuevo+rbx],rdx ;agrego a vector
+    add     rbx,8
    ; call printf
    ; mov rdi,rdx
-   
    ; mov rcx,numeroFormato
     ;mov rdx, [vectorNuevo+rbx]
     ;call printf
    ; add rbx,8
-    jmp ingresoHexadecimal
+
+    jmp     ingresoHexadecimal
 ret
 hexadecimalValido:
     mov     rsi,0
    
     mov		rcx,msgnumHexa	
-	call	printf	
-    jmp printearHexa
+    add     rsp,32
+	call	printf
+    sub     rsp,32
+
+    jmp     printearHexa
 ret    
 printearHexa:
-    cmp rsi,32
-    jge  vectorHexaPrinteado
+    cmp     rsi,32
+    jge     vectorHexaPrinteado
 
-    mov rcx,stringFormato
-    lea rdx,[vector+rsi]
+    mov     rcx,stringFormato
+    lea     rdx,[vector+rsi]
+    add     rsp,32
     call    printf
+    sub     rsp,32
 
-    add rsi,4
+    add     rsi,4
     
-    jmp printearHexa
+    jmp     printearHexa
 vectorHexaPrinteado:
-    mov rsi,0
-voy:
-    cmp rsi,64
-    jge hexaABina
-    mov rcx,numeroFormato
-    mov rdx, [vectorNuevo+rsi]
-    ;call printf
-    add rsi,8
-    jmp voy
+    mov     rsi,0
 hexaABina:
-;mov rcx,msgenter
-;call puts
-    mov rsi,56
-  ;  mov qword[contador],0
-    mov qword[aux2],0
-    mov qword[aux],0
+    mov     rsi,56
+    mov     qword[aux2],0
+    mov     qword[aux],0
 calcularResuk:
 ;-----------------------------------------------------------;
 ; Pasar hexadec a  decimal                                  ;
 ;-----------------------------------------------------------;
 pasarHexaADec:
-    cmp rsi,0    
-    jl hexaABina1
-  ;  mov rcx,msgenter
-   ; call puts
-    mov rcx,numeroFormato
-    mov rdx,[vectorNuevo+rsi]
-   
+    cmp     rsi,0    
+    jl      hexaABina1
+ 
+;    mov rcx,numeroFormato
+;    mov rdx,[vectorNuevo+rsi]  
    ; call printf
-
  ;   mov rcx, numeroFormato
  ;   call printf
-    mov rcx, qword[aux2]
-    mov qword[aux0],rcx
-    cmp rdx,0
-    je  avanzoH
-    cmp rdx,1
-    jge  contH
-contH:
+    mov     rcx, qword[aux2]
+    mov     qword[aux0],rcx
 
+    cmp     rdx,0
+    je      avanzoH
+    cmp     rdx,1
+    jge     contH
+contH:
   ;  mov rcx, qword[aux2]
    ; mov qword[aux0],rcx
+    cmp     qword[aux2],0
+    je      elevadoA0H
+    cmp     qword[aux2],1
+    je      elevadoA1H
 
-    cmp qword[aux2],0
-    je  elevadoA0H
-    cmp qword[aux2],1
-    je  elevadoA1H
-    mov r8,16
-    mov r9,16
-    jmp potenciaH
+    mov     r8,16
+    mov     r9,16
+
+    jmp     potenciaH
 elevadoA0H:
-    add qword[aux],rdx
-    jmp avanzoH
+    add     qword[aux],rdx
+    jmp     avanzoH
 ret
 elevadoA1H:
-    mov r8,16
-    mov r9,[vectorNuevo+rsi]
-    imul r8,r9
-    add qword[aux],r8
-    jmp avanzoH
+    mov     r8,16
+    mov     r9,[vectorNuevo+rsi]
+    imul    r8,r9
+    add     qword[aux],r8
+    jmp     avanzoH
 ret   
 potenciaH:
-    imul r8,r9
-    dec qword[aux2]
-    cmp qword[aux2],1
-    jne  potenciaH
+    imul    r8,r9
+    dec     qword[aux2]
+
+    cmp     qword[aux2],1
+    jne     potenciaH
     
-   ; mov qword[aux4],r8
-    mov r9,[vectorNuevo+rsi]
-    imul r8,r9
-    add qword[aux],r8
-    
+    mov     r9,[vectorNuevo+rsi]
+    imul    r8,r9
+    add     qword[aux],r8
 avanzoH:   
-    mov rcx, qword[aux0]
-    mov qword[aux2],rcx
-    add qword[aux2],1
- 
+    mov     rcx, qword[aux0]
+    mov     qword[aux2],rcx
+    add     qword[aux2],1
 sigH:    
-    sub rsi,8
-    mov rcx, numeroFormato
-    mov rdx, qword[aux]
-  ;  call printf
+    sub     rsi,8
+;    mov     rcx, numeroFormato
+;    mov     rdx, qword[aux]
+;    call printf
     
-    jmp calcularResuk
+    jmp     calcularResuk
 ret    
 hexaABina1:
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-   ; call printf
+;    mov     rcx, numeroFormato
+;    mov rdx,qword[aux]
+;   call printf
 pasarDecABinaH:
-    mov qword[aux2],2
-    mov rsi,0
-    mov rbx,8
+    mov     qword[aux2],2
+    mov     rsi,0
+    mov     rbx,8
  ;   mov rcx, numeroFormato
   ;  mov rdx,qword[aux2]
    ; call printf
-
    ; mov rcx, numeroFormato
     ;mov rdx,qword[aux]
     ;call printf
-
-   
 dividoH:    
     cmp     qword[aux],2
     jl      termineH
+
     mov     rax,qword[aux] ;lo q voy a dividir 
     sub     rdx,rdx
     idiv    qword[aux2] ; divido por 2 
-  ;  mov     qword[aux0],rdx
     inc     qword[contador]
 
-    mov qword[aux],rax
+    mov     qword[aux],rax
   ;  mov rcx, numeroFormato
    ; mov rdx,rdx;qword[aux0]
     ;call printf
     ;mov rcx, msgenter
     ;call puts
-    mov rdi,rdx
-    mov [vector+rsi],rdi
-    
-    add rsi,8
-    jmp dividoH
+    mov     rdi,rdx
+    mov     [vector+rsi],rdi
+    add     rsi,8
+
+    jmp     dividoH
 termineH:
  ;   mov rcx, numeroFormato
   ;  mov rdx, qword[aux]
@@ -817,6 +871,11 @@ es15:
 ; Pasar Notacion cientifica a configuracion                 ;
 ;-----------------------------------------------------------;
 accion2:
+    mov  	rcx,msgenter
+	sub     rsp,32
+	call 	puts
+    add     rsp,32
+
     mov     rsi,0
     mov  	rcx,msgSubOpcion2
 	sub     rsp,32
@@ -835,7 +894,9 @@ ingresarCoeficiente:
     mov 	rcx,opcionIngresada
 	mov		rdx,numeroFormato
 	mov 	r8,opcion
+	sub     rsp,32
 	call	sscanf
+    add     rsp,32
 
 	cmp		rax,1
 	jl		errorIngresoOpcion
@@ -857,7 +918,9 @@ ingresarExponente:
     mov 	rcx,opcionIngresada
 	mov		rdx,numeroFormato
 	mov 	r8,opcion
+	sub     rsp,32
 	call	sscanf
+    add     rsp,32
 
 	cmp		rax,1
 	jl		errorIngresoOpcion
@@ -890,7 +953,9 @@ visualizar:
     mov 	rcx,opcionIngresada
 	mov		rdx,numeroFormato
 	mov 	r8,opcion
+	sub     rsp,32
 	call	sscanf
+    add     rsp,32
 
 	cmp		rax,1
 	jl		errorIngresoOpcion
@@ -1453,10 +1518,4 @@ add qword[aux],2
     mov rcx, numeroFormato
     mov rdx,qword[aux]
     call printf
-puts:
-    sub     rsp,32
-	sub     rsp,32
-	call 	puts
-    add     rsp,32
-    add     rsp,32
 ret
