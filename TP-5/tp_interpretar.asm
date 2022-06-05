@@ -24,6 +24,7 @@ section .data
     vector                      times 32 dq 1
     vectorResultado             times 32 dq 1
     vectorAux                   times 32 dq 1
+    vectorNuevo                 times 32 dq 1
     msgLetrasMay                db  "(Ingresar las letras en Mayuscula)",0
     msgProxNum                  db  "~~Proximo Digito: ",0
     msgnumBina                  db  "~~Numero binario ingresado valido -------> ",0
@@ -41,6 +42,7 @@ section .data
     aux                         dq 0
     aux2                         dq 0
     aux3                        dq  0
+    aux4                        dq 0
 
 section .bss
     opcionIngresada     resb 1
@@ -148,6 +150,15 @@ validarHexadecimal:
     je  agregarHexaAVector
 
     cmp word[inputNumeros],'7'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'8'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'9'
+    je  agregarHexaAVector
+
+    cmp word[inputNumeros],'0'
     je  agregarHexaAVector
     jg  corroborarLetras
       
@@ -452,6 +463,7 @@ ret
 ;-----------------------------------------------------------;
 esHexadecimal:
     mov rsi,0
+     mov rbx,0
     mov rcx, msgLetrasMay
     call puts
 ingresoHexadecimal:
@@ -471,29 +483,319 @@ ingresoHexadecimal:
 
 ret
 agregarHexaAVector:
+   
     mov qword[aux],4
     call rellenarVector
+;   mov rdx,0
+
+pasarHexaADeci:
+   jmp traducir
+listo:
+  ;  mov rcx,numeroFormato
+   ; call printf
+   ; cmp qword[aux4],2
+    ;je leo2
+    ;cmp qword[aux4],1
+    ;je leo1
+;esta:  
+    mov rcx, numeroFormato
+    mov rdx,[inputNumeros]
+    mov [vectorNuevo+rbx],rdx
+    add rbx,8
+   ; call printf
+   ; mov rdi,rdx
+   
+   ; mov rcx,numeroFormato
+    ;mov rdx, [vectorNuevo+rbx]
+    ;call printf
+   ; add rbx,8
     jmp ingresoHexadecimal
 ret
 hexadecimalValido:
     mov     rsi,0
+   
     mov		rcx,msgnumHexa	
 	call	printf	
     jmp printearHexa
 ret    
 printearHexa:
     cmp rsi,32
-    jge  vectorPrinteado
+    jge  vectorHexaPrinteado
 
     mov rcx,stringFormato
     lea rdx,[vector+rsi]
     call    printf
 
     add rsi,4
+    
     jmp printearHexa
 vectorHexaPrinteado:
- 
+    mov rsi,0
+voy:
+    cmp rsi,64
+    jge hexaABina
+    mov rcx,numeroFormato
+    mov rdx, [vectorNuevo+rsi]
+    call printf
+    add rsi,8
+    jmp voy
+hexaABina:
+mov rcx,msgenter
+call puts
+    mov rsi,56
+  ;  mov qword[contador],0
+    mov qword[aux2],0
+    mov qword[aux],0
+calcularResuk:
+;-----------------------------------------------------------;
+; Pasar hexadec a  decimal                                  ;
+;-----------------------------------------------------------;
+pasarHexaADec:
+    cmp rsi,0    
+    jl hexaABina1
+    mov rcx,msgenter
+    call puts
+    mov rcx,numeroFormato
+    mov rdx,[vectorNuevo+rsi]
+   
+   ; call printf
+
+ ;   mov rcx, numeroFormato
+ ;   call printf
+    mov rcx, qword[aux2]
+    mov qword[Y2],rcx
+    cmp rdx,0
+    je  avanzoH
+    cmp rdx,1
+    jge  contH
+contH:
+
+  ;  mov rcx, qword[aux2]
+   ; mov qword[Y2],rcx
+
+    cmp qword[aux2],0
+    je  elevadoA0H
+    cmp qword[aux2],1
+    je  elevadoA1H
+    mov r8,16
+    mov r9,16
+    jmp potenciaH
+elevadoA0H:
+    add qword[aux],rdx
+    jmp avanzoH
 ret
+elevadoA1H:
+    mov r8,16
+    mov r9,[vectorNuevo+rsi]
+    imul r8,r9
+    add qword[aux],r8
+    jmp avanzoH
+ret   
+potenciaH:
+    imul r8,r9
+    dec qword[aux2]
+    cmp qword[aux2],1
+    jne  potenciaH
+    
+   ; mov qword[aux4],r8
+    mov r9,[vectorNuevo+rsi]
+    imul r8,r9
+    add qword[aux],r8
+    
+avanzoH:   
+    mov rcx, qword[Y2]
+    mov qword[aux2],rcx
+    add qword[aux2],1
+ 
+sigH:    
+    sub rsi,8
+    mov rcx, numeroFormato
+    mov rdx, qword[aux]
+  ;  call printf
+    
+    jmp calcularResuk
+ret    
+hexaABina1:
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+    call printf
+pasarDecABinaH:
+    mov qword[aux2],2
+    mov rsi,0
+    mov rbx,8
+ ;   mov rcx, numeroFormato
+  ;  mov rdx,qword[aux2]
+   ; call printf
+
+   ; mov rcx, numeroFormato
+    ;mov rdx,qword[aux]
+    ;call printf
+
+   
+dividoH:    
+    cmp     qword[aux],2
+    jl      termineH
+    mov     rax,qword[aux] ;lo q voy a dividir 
+    sub     rdx,rdx
+    idiv    qword[aux2] ; divido por 2 
+  ;  mov     qword[Y2],rdx
+    inc     qword[contador]
+
+    mov qword[aux],rax
+  ;  mov rcx, numeroFormato
+   ; mov rdx,rdx;qword[Y2]
+    ;call printf
+    ;mov rcx, msgenter
+    ;call puts
+    mov rdi,rdx
+    mov [vector+rsi],rdi
+    
+    add rsi,8
+    jmp dividoH
+termineH:
+ ;   mov rcx, numeroFormato
+  ;  mov rdx, qword[aux]
+   ; call printf
+   mov rdi,qword[aux]
+    mov [vector+rsi],rdi
+    add rsi,8
+     mov rcx, msgenter
+    call puts
+    mov rcx, numeroFormato
+    mov rdx, qword[contador]
+   ; call printf
+    mov rsi,248
+    mov rbx,0
+verH:
+    cmp rsi, 0
+    jl averH
+    mov     rcx,numeroFormato
+    mov     rdx,[vector+rsi]
+    mov [vectorResultado+rbx],rdx
+    add rbx,8
+    ;call    printf
+    sub rsi,8
+    jmp ver
+ret
+averH:
+    mov rsi,0
+    mov rcx, msgRNCBin
+    call puts
+ver2H:
+    cmp rsi, 256
+    jge endH
+    mov     rcx,numeroFormato
+    mov     rdx,[vectorResultado+rsi]
+    call    printf
+    add rsi,8
+    jmp ver2H
+ret
+endH:
+ret
+
+traducir:
+  ;  mov rcx,inputNumeros
+   ; mov rdx,[inputNumeros]
+   ; call puts
+    cmp qword[inputNumeros],'1'
+    je paso1
+    cmp qword[inputNumeros],'2'
+    je paso2
+    cmp qword[inputNumeros],'3'
+    je paso3
+    cmp qword[inputNumeros],'4'
+    je paso4
+    cmp qword[inputNumeros],'5'
+    je paso5
+    cmp qword[inputNumeros],'6'
+    je paso6
+    cmp qword[inputNumeros],'7'
+    je paso7
+    cmp qword[inputNumeros],'8'
+    je paso8
+    cmp qword[inputNumeros],'9'
+    je paso9
+    cmp qword[inputNumeros],'0'
+    je paso0
+    cmp qword[inputNumeros],'A'
+    je es10
+    cmp qword[inputNumeros],'B'
+    je esonce
+    cmp qword[inputNumeros],'C'
+    je es12
+    cmp qword[inputNumeros],'D'
+    je es13
+    cmp qword[inputNumeros],'E'
+    je es14
+    cmp qword[inputNumeros],'F'
+    je es15
+ret
+paso0:
+    mov qword[inputNumeros],0
+    mov qword[aux4],1
+    jmp listo
+paso1:
+mov qword[inputNumeros],1
+mov qword[aux4],1
+    jmp listo
+paso2:
+mov qword[inputNumeros],2
+mov qword[aux4],1
+    jmp listo
+paso3:
+mov qword[inputNumeros],3
+mov qword[aux4],1
+    jmp listo
+paso4:
+mov qword[inputNumeros],4
+mov qword[aux4],1
+    jmp listo
+paso5:
+mov qword[inputNumeros],5
+mov qword[aux4],1
+    jmp listo
+paso6:
+mov qword[inputNumeros],6
+mov qword[aux4],1
+    jmp listo
+paso7:
+mov qword[inputNumeros],7
+mov qword[aux4],1
+    jmp listo
+paso8:
+mov qword[inputNumeros],8
+mov qword[aux4],1
+    jmp listo
+paso9:
+mov qword[inputNumeros],9
+mov qword[aux4],1
+    jmp listo
+es10:
+    mov rcx,numeroFormato
+    mov qword[inputNumeros],10
+    mov qword[aux4],2
+   ; call printf
+    jmp listo
+esonce:
+ mov qword[inputNumeros],11
+ mov qword[aux4],2
+    jmp listo
+es12:
+ mov qword[inputNumeros],12
+ mov qword[aux4],2
+    jmp listo
+es13:
+ mov qword[inputNumeros],13
+ mov qword[aux4],2
+    jmp listo
+es14:
+ mov qword[inputNumeros],14
+ mov qword[aux4],2
+    jmp listo
+es15:
+ mov qword[inputNumeros],15
+ mov qword[aux4],2
+    jmp listo
 
 ;-----------------------------------------------------------;
 ; Pasar Notacion cientifica a configuracion                 ;
@@ -571,7 +873,7 @@ visualizar:
 
     call    validarOpcion
     cmp     word[opcion],1
-    je      aConfBinaria
+    je      hexaABina
 
     cmp     word[opcion],2
     je      aConfHexa
