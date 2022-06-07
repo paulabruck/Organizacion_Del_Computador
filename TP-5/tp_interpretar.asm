@@ -255,6 +255,10 @@ accion1:
 
     cmp     word[opcion],2
     je      esHexadecimal
+exponentes0:
+    mov qword[aux],0
+    jmp pasarDecABina2
+ret
 ;-----------------------------------------------------------;
 ; configuracion binaria a notacion cientifica               ;
 ;-----------------------------------------------------------;
@@ -327,21 +331,36 @@ pasarExponenteEnExcesoADecimal:
     mov     qword[param1],8
 
     call    pasarBinaADec2
-exponentes0:
-    mov qword[aux],0
-    jmp pasarDecABina2
-ret
 calculoResta127:
     cmp     qword[aux],0
     jle     exponentes0   
     sub     qword[aux],127
+
 pasarExponenteABinario:
     mov rsi,0
     mov rbx,0
     mov qword[param],56
     mov qword[param1],8
-
+    
     call pasarDecABina2
+    
+    mov     rcx, msgenter
+    add     rsp, 32
+    call    puts
+    sub     rsp, 32
+
+    mov     rsi,qword[param];56
+    mov     rbx,qword[param1];8
+invertirVector:
+    cmp     rsi,0
+    jl     imprimoResultadoCaso11;aver2
+
+    mov     rdx,[vector+rsi]
+    mov     [vectorResultado+rbx],rdx
+    add     rbx,8
+    sub     rsi,8
+
+    jmp     invertirVector    
 imprimoResultadoCaso11:
 AntesDeLaComa:
     mov     rcx,msgenter
@@ -457,7 +476,6 @@ agregarHexaAVector:
 pasarHexaADeci:
     jmp     traducir
 listo: 
-
     mov     rdx,[inputNumeros]
     mov     [vectorNuevo+rbx],rdx ;agrego a vector
     add     rbx,8
@@ -549,8 +567,7 @@ sigH:
     jmp     calcularResuk
 ret    
 hexaABina1:
-
-pasarDecABinaH:
+ pasarDecABinaH:
     mov     qword[aux2],2
     mov     rsi,0
     mov     rbx,8
@@ -578,7 +595,7 @@ termineH:
 
     mov     rcx, msgenter
     add     rsp,32
-    call    puts
+   ; call    puts
     sub     rsp,32
 
     mov     rcx, numeroFormato
@@ -595,7 +612,7 @@ verH:
     add     rbx,8
     ;call    printf
     sub     rsi,8
-    jmp     ver
+    jmp     verH
 ret
 averH:
     mov     rsi,0
@@ -606,14 +623,16 @@ averH:
     sub     rsp,32
 ver2H:
     cmp     rsi, 256
-    jge     final
+    jge     f;binarioValido
 
     mov     rcx,numeroFormato
     mov     rdx,[vectorResultado+rsi]
-  ;  call    printf
+    ;call    printf
     add     rsi,8
 
     jmp     ver2H
+f:
+    jmp binarioValido
 ret
 traducir:
   ;  mov rcx,inputNumeros
@@ -1223,7 +1242,7 @@ convertir1:
     mov rcx,numeroFormato
     mov rdx,rdi
     ;call printf
-     cmp rdi,1
+    cmp rdi,1
     je  es11
     cmp rdi,2
     je  es21
@@ -1360,9 +1379,12 @@ add qword[aux],2
     mov rdx,qword[aux]
     call printf
 ret
+final:
+ret
+
 pasarBinaADec2:
     cmp     rsi,qword[param1];8   
-    jl      calculoResta127
+    jl      final;calculoResta127
     
     mov     rcx, qword[aux2]
     mov     qword[aux0],rcx
@@ -1385,12 +1407,12 @@ elevadoA02:
     inc     qword[aux]
 
     jmp     avanzo2
-ret
+;ret
 elevadoA12:
     add     qword[aux],2
 
     jmp     avanzo2
-ret   
+;ret   
 potencia2:
     imul    r8,r9
     dec     qword[aux2]
@@ -1411,7 +1433,8 @@ sig2:
 ;    mov rdx, qword[aux]
 ;    call printf  
     jmp     pasarBinaADec2
-ret    
+ret   
+
 pasarDecABina2:
 
     mov     qword[aux2],2
@@ -1450,26 +1473,4 @@ termine2:
     mov     [vector+rsi],rdi ; agrego ultimo pedazo a vector 
     add     rsi,8
 
-    mov     rcx, msgenter
-    add     rsp, 32
-    call    puts
-    sub     rsp, 32
-
-    mov     rsi,qword[param];56
-    mov     rbx,qword[param1];8
-ver222:
-    cmp     rsi,0
-    jl      retornar;imprimoResultadoCaso11;aver2
-
-;   mov     rcx,numeroFormato
-    mov     rdx,[vector+rsi]
-    mov     [vectorResultado+rbx],rdx
-    add     rbx,8
-;   call    printf
-    sub     rsi,8
-
-    jmp     ver222
-retornar:
-ret
-final:
 ret
