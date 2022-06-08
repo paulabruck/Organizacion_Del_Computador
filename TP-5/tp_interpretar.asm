@@ -33,6 +33,8 @@ section .data
     msgcoma                     db  " , ",0
     msgenter                    db  " ",0
     msgNegativo                 db  "-",0
+    msgIngSignoExpo             db  "~~Ingrese signo del exponente(+ ---> Positivo | - ---> Negativo) : ",0
+    msgIngCantDigit             db  "~~Ingrese cantidad de digitos que posee el exponente : ",0
     contador                    dq  0
     aux0                        dq  0
     aux                         dq  0
@@ -270,7 +272,7 @@ ingresoBinario:
 
     mov     qword[msg],inputNumeros
     call    getss
-
+    
     call scanfNumero
     cmp     rax,1
     jl      errorIngresoOpcion
@@ -893,6 +895,14 @@ exponentes01:
     mov qword[aux],0
     jmp pasarDecABina2
 ret    
+expoIngreNegativo:
+    mov qword[flagNeg],1
+    jmp ingresarCantDigitos
+ret
+expoIngrePositivo:
+    mov qword[flagNeg],0
+    jmp ingresarCantDigitos
+ret
 ;-----------------------------------------------------------;
 ; Pasar Notacion cientifica a configuracion                 ;
 ;-----------------------------------------------------------;
@@ -910,7 +920,7 @@ accion2:
     add     rsp,32
 ingresarCoeficiente:
     cmp     rsi,192
-    jge     ingresarExponente
+    jge     ingresarSignoExponente
 
     mov  	rcx,msgIngCoef
     add     rsp,32
@@ -937,10 +947,50 @@ ingresarCoeficiente:
     call    agregarNCAVector
 
     jmp     ingresarCoeficiente
+ingresarSignoExponente:
+    mov  	qword[msg],msgIngSignoExpo
+    call    printfString
+
+    mov     qword[msg],opcionIngresada
+    call    getss
+
+    cmp     qword[opcionIngresada],'-'
+    je      expoIngreNegativo
+
+    cmp qword[opcionIngresada],'+'
+    je     expoIngrePositivo
+
+    jmp errorIngresoOpcion
+ingresarCantDigitos:
+    mov  	qword[msg],msgIngCantDigit
+    call    printfString
+
+    mov     qword[msg],opcionIngresada
+    call    getss
+
+    mov 	rcx,opcionIngresada
+	mov		rdx,numeroFormato
+	mov 	r8,opcion
+	sub     rsp,32
+	call	sscanf
+    add     rsp,32
+
+    mov r8,qword[opcion]
+    mov r9,8
+
+    imul r8,r9
+
+    mov qword[aux0],r8
+
+   add qword[aux0],192
+   mov rcx, numeroFormato
+   mov rdx, qword[aux0]
+   call printf
+   
 
     mov     rsi,192
 ingresarExponente:
-    cmp     rsi,224
+    cmp     rsi,qword[aux0];224
     jge     printNCienti
 
     mov  	rcx,msgIngExpo
@@ -1005,7 +1055,7 @@ visualizar:
     call    validarOpcion
 
     cmp     word[opcion],1
-    je      hexaABina
+    je      aConfBinaria
     cmp     word[opcion],2
     je      aConfHexa
 ret
@@ -1138,16 +1188,41 @@ sig:
     
     jmp calcularExpoExceso
 ret    
+decimalNegativo:
+    not qword[aux]
+    inc qword[aux]
+    jmp opero
+ret
+reconvierto:
+    not qword[aux]
+    inc qword[aux]
+    mov rcx, numeroFormato
+    mov rdx, qword[aux]
+    call printf
+    jmp pasarDecABina
+ret
 expoExceso:
     mov rcx, numeroFormato
     mov rdx,qword[aux]
+    cmp qword[flagNeg],1
+    je  decimalNegativo
    ; call printf
-
+opero:
     add qword[aux],127
     mov rcx, numeroFormato
     mov rdx,qword[aux]
-  ;  call printf
- 
+    call printf
+    cmp qword[aux],0
+    jl  reconvierto
+limpieza:
+ mov rsi,0
+reinicioVector11:
+    cmp rsi,256
+    jge pasarDecABina
+    mov qword[vector+rsi],0
+    add rsi,8
+    jmp reinicioVector11
+
 pasarDecABina:
     mov qword[aux2],2
     mov rsi,0
@@ -1185,7 +1260,7 @@ ver:
     mov     rdx,[vector+rsi]
     mov [vectorResultado+rbx],rdx
     add rbx,8
-   ; call    printf
+    call    printf
     sub rsi,8
     jmp ver
 ret
