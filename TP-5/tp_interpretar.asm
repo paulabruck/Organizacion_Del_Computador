@@ -1,8 +1,8 @@
 global 	main
 extern 	printf
 extern	gets
-extern puts
-extern sscanf
+extern  puts
+extern  sscanf
 
 section .data
     msgBienvenida               db  "~~Bienvenido al interprete de Binario de Punto Flotante IEEE 754 de precision simple~~", 0
@@ -48,7 +48,6 @@ section .data
     vectorResultado             times 32 dq 1
     vectorAux                   times 32 dq 1
     vectorNuevo                 times 32 dq 1
-    vectorHelp                  times 32 dq 1
     vectorExponente             times 8  dq 1
  
 section .bss
@@ -89,16 +88,9 @@ menu:
     mov     qword[msg],opcionIngresada
     call    getss
 
-    mov 	rcx,opcionIngresada
-	mov		rdx,numeroFormato
-	mov 	r8,opcion
-    sub     rsp,32
-	call	sscanf
-    add     rsp,32
+    mov 	qword[msg],opcionIngresada
+	call    scanfNumero
 	
-	cmp		rax,1
-	jl		errorIngresoOpcion
-    
 	call 	validarOpcion
     jmp     accionARealizar
 ret
@@ -120,7 +112,6 @@ ret
 validarOpcion:
 	cmp		word[opcion],1
 	jl		errorIngresoOpcion
-    
 	cmp		word[opcion],2
 	jg		errorIngresoOpcion
 ret
@@ -208,15 +199,8 @@ accion1:
     mov     qword[msg],opcionIngresada  
     call    getss
 
-    mov 	rcx,opcionIngresada
-	mov		rdx,numeroFormato
-	mov 	r8,opcion
-	sub     rsp,32
-	call	sscanf
-    add     rsp,32
-
-	cmp		rax,1
-	jl		errorIngresoOpcion
+    mov 	qword[msg],opcionIngresada
+    call    scanfNumero
 
 	call 	validarOpcion
    
@@ -228,28 +212,17 @@ accion1:
     
     cmp     word[opcion],1
     je      esBinario
-
     cmp     word[opcion],2
     je      esHexadecimal
-exponentesNegativo:
-    sub     qword[aux],127
-    not     qword[aux]
-    inc     qword[aux]
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-    call    printf
-    mov     qword[flagNeg],1
+exponentesNegativo2:
+    call    exponentesNegativo
+    jmp     pasarExponenteABinario  
+exponentesCero2:
+    call    exponentesCero
     jmp     pasarExponenteABinario
-ret
-exponentesCero:
-    mov     qword[aux],0
+exponentesPostivo2:
+    call    exponentesPostivo
     jmp     pasarExponenteABinario
-ret
-exponentesPostivo:
-    sub     qword[aux],127
-    mov     qword[flagNeg],0
-    jmp     pasarExponenteABinario
-ret
 negativo:
     mov     qword[msg],msgNegativo
     call    printfString
@@ -273,10 +246,8 @@ ingresoBinario:
     mov     qword[msg],inputNumeros
     call    getss
     
-    call scanfNumero
-    cmp     rax,1
-    jl      errorIngresoOpcion
-
+    mov     qword[msg],inputNumeros
+    call    scanfNumero
     call    validarBinario
 agregarAVector:
     mov     rdi,[opcion]
@@ -285,7 +256,6 @@ agregarAVector:
     add     rsi,8
 
     jmp     ingresoBinario
-ret
 binarioValido:
     mov     rsi,0
 
@@ -298,51 +268,39 @@ printearNumeros:
     call    printGeneral
     jmp     printearNumeros
 calcularExponente:
-    mov     qword[msg], msgenter
+    mov     qword[msg],msgenter
     call    putss
 pasarExponenteEnExcesoADecimal:
     mov     rsi,64
     mov     qword[param1],8
 
     call    pasarBinaADec2B
-    
 calculoResta127:
     cmp     qword[aux],127
-    jl      exponentesNegativo   
-    je      exponentesCero
-    jg      exponentesPostivo
+    jl      exponentesNegativo2   
+    je      exponentesCero2
+    jg      exponentesPostivo2
 pasarExponenteABinario:
-    mov rsi,0
+    mov     rsi,0
 reinicioVector:
-    cmp rsi,72
-    jge sigoo
-    mov qword[vectorExponente+rsi],0
-    add rsi,8
-    jmp reinicioVector
+    cmp     rsi,72
+    jge     sigoo
+    mov     qword[vectorExponente+rsi],0
+    add     rsi,8
+    jmp     reinicioVector
 sigoo:
     mov     rsi,0
     mov     rbx,0
     mov     qword[param],0
     mov     qword[param1],8
-    mov     rsi,qword[param];56
-    mov     rbx,qword[param1];8
-    
+    mov     rsi,qword[param]
+    mov     rbx,qword[param1]
+
     call    pasarDecABina2B
     
     mov     qword[msg], msgenter
     call    putss
     mov     rsi,8
-invertirVector:
-    cmp     rsi,64
-    jl     imprimoResultadoCaso11
-    mov rcx, numeroFormato
-    mov     rdx,[vector+rsi]
-    call    printf
-    mov     [vectorResultado+rbx],rdx
-    add     rbx,8
-    add     rsi,8
-
-    jmp     invertirVector    
 imprimoResultadoCaso11:
 AntesDeLaComa:
     mov     qword[msg],msgenter
@@ -381,17 +339,15 @@ base:
     mov     rsi,8
     cmp     qword[flagNeg],1
     je      negativo
-    
 elExponente:
     mov     rsi,56
 expo:
     cmp     rsi,0
-    jl     final
+    jl      final
 
     mov     rdx,[vectorExponente+rsi]
     mov     qword[msg],rdx
     call    printfNumero
-
 
     sub     rsi,8
     jmp     expo
@@ -399,7 +355,6 @@ ret
 signoNegativoC:
     mov     qword[msg],-1
     call    printfNumero
-
 
     jmp     laComa
 signoPositivoC:
@@ -428,8 +383,7 @@ ingresoHexadecimal:
     mov     qword[msg], inputNumeros
     call    putss
 
-    call validarHexadecimal
-ret
+    call    validarHexadecimal
 agregarHexaAVector: 
     mov     qword[aux],4
     call    rellenarVector
@@ -439,7 +393,7 @@ listo:
     mov     rdx,[inputNumeros]
     mov     [vectorNuevo+rbx],rdx
     add     rbx,8
-  
+
     jmp     ingresoHexadecimal
 ret
 hexadecimalValido:
@@ -449,7 +403,7 @@ hexadecimalValido:
 	call	printfString	  
 printearHexa:
     cmp     rsi,32
-    jge      vectorHexaPrinteado
+    jge     vectorHexaPrinteado
 
     mov     rcx,stringFormato
     lea     rdx,[vector+rsi]
@@ -475,94 +429,67 @@ calcularResultado:
 pasarHexaADec:
     cmp     rsi,0    
     jl      hexaABina1
-    mov rcx,msgenter
-    call puts
-    mov rcx,numeroFormato
-    mov rdx,[vectorNuevo+rsi]
-   
-   ; call printf
 
- ;   mov rcx, numeroFormato
- ;   call printf
-    mov rcx, qword[aux2]
-    mov qword[aux0],rcx
-    cmp rdx,0
-    je  avanzoH
-    cmp rdx,1
-    jge  contH
+    mov     qword[msg],msgenter
+    call    putss
+
+    mov     rdx,[vectorNuevo+rsi]
+    mov     rcx, qword[aux2]
+    mov     qword[aux0],rcx
+
+    cmp     rdx,0
+    je      avanzoH
+    cmp     rdx,1
+    jge     contH
 contH:
+    cmp     qword[aux2],0
+    je      elevadoA0H
+    cmp     qword[aux2],1
+    je      elevadoA1H
 
-  ;  mov rcx, qword[aux2]
-   ; mov qword[aux0],rcx
-
-    cmp qword[aux2],0
-    je  elevadoA0H
-    cmp qword[aux2],1
-    je  elevadoA1H
-    mov r8,16
-    mov r9,16
-    jmp potenciaH
+    mov     r8,16
+    mov     r9,16
+    jmp     potenciaH
 elevadoA0H:
-    add qword[aux],rdx
-    jmp avanzoH
-ret
+    add     qword[aux],rdx
+    jmp     avanzoH
 elevadoA1H:
-    mov r8,16
-    mov r9,[vectorNuevo+rsi]
-    imul r8,r9
-    add qword[aux],r8
-    jmp avanzoH
-ret   
+    mov     r8,16
+    mov     r9,[vectorNuevo+rsi]
+    imul    r8,r9
+    add     qword[aux],r8
+    jmp     avanzoH  
 potenciaH:
-    imul r8,r9
-    dec qword[aux2]
-    cmp qword[aux2],1
-    jne  potenciaH
+    imul    r8,r9
+    dec     qword[aux2]
+    cmp     qword[aux2],1
+    jne     potenciaH
     
-   ; mov qword[aux4],r8
-    mov r9,[vectorNuevo+rsi]
-    imul r8,r9
-    add qword[aux],r8
-    
+    mov     r9,[vectorNuevo+rsi]
+    imul    r8,r9
+    add     qword[aux],r8
 avanzoH:   
-    mov rcx, qword[aux0]
-    mov qword[aux2],rcx
-    add qword[aux2],1
- 
+    mov     rcx, qword[aux0]
+    mov     qword[aux2],rcx
+    add     qword[aux2],1
 sigH:    
-    sub rsi,8
-    mov rcx, numeroFormato
-    mov rdx, qword[aux]
-    call printf
+    sub     rsi,8
     
-    jmp calcularResultado
+    jmp     calcularResultado
 ret  
-
 hexaABina1:
-    mov rsi,0
-    mov rcx, msgBienvenida
-    call puts
+    mov     rsi,0
 limpioVector:
-    cmp rsi,256
-    je  limpio
+    cmp     rsi,256
+    je      limpio
 
-    mov qword[vector+rsi],0
-    mov qword[vectorResultado+rsi],0
+    mov     qword[vector+rsi],0
+    mov     qword[vectorResultado+rsi],0
+    add     rsi,8
 
-    mov rcx, numeroFormato
-    mov rdx, [vector+rsi]
-    call printf
-    add rsi,8
-
-
-    jmp limpioVector
+    jmp     limpioVector
 limpio:
-    mov rcx,numeroFormato
-    mov rdx,[vector+rsi]
-    call printf
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-  ;  call printf
+    call    pasarDecABina2
 pasarDecABinaH:
     mov qword[aux2],2
     mov rsi,0
@@ -854,37 +781,34 @@ paso0:
     mov     qword[inputNumeros],0
     jmp     listo
 paso1:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],1
     jmp     listo
 paso2:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],2
     jmp     listo
 paso3:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],3
     jmp     listo
 paso4:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],4
     jmp     listo
 paso5:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],5
     jmp     listo
 paso6:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],6
     jmp     listo
 paso7:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],7
     jmp     listo
 paso8:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],8
     jmp     listo
 paso9:
-    mov     qword[inputNumeros],
+    mov     qword[inputNumeros],9
     jmp     listo
 es10:
-    mov     rcx,numeroFormato
-    mov     qword[inputNumeros],10
-    
-   ; call intf
+    mov     qword[inputNumeros],10    
     jmp     listo
 esonce:
     mov     qword[inputNumeros],11
@@ -1849,10 +1773,26 @@ printfNumero:
     add     rsp,32
 ret
 scanfNumero:
-    mov     rcx,inputNumeros
+    mov     rcx,qword[msg]
     mov     rdx,numeroFormato
     mov     r8,opcion
     sub     rsp,32
     call    sscanf
     add     rsp,32
+    cmp		rax,1
+	jl		errorIngresoOpcion
 ret
+exponentesNegativo:
+    sub     qword[aux],127
+    not     qword[aux]
+    inc     qword[aux]
+    mov     qword[flagNeg],1
+ret
+exponentesCero:
+    mov     qword[aux],0
+ret
+exponentesPostivo:
+    sub     qword[aux],127
+    mov     qword[flagNeg],0
+ret
+
