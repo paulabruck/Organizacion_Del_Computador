@@ -572,16 +572,13 @@ sigoo1:
     mov     rsi,qword[param];56
     mov     rbx,qword[param1];8
     call    pasarDecABina2B
-    
-    mov     qword[msg], msgenter
-    call    putss
 imprimoResultadoCaso111:
 AntesDeLaComa1:
     mov     qword[msg],msgenter
-    call    puts
+    call    putss
 
     mov     qword[msg], msgRBANC
-    call    puts
+    call    putss
 
     mov     rsi,0
     mov     rdx,[vectorResultado+rsi]
@@ -596,63 +593,48 @@ laComa1:
 mantisa1:
     cmp     rsi,256
     jge     base1
-
-    mov     rcx,numeroFormato
     mov     rdx,[vectorResultado+rsi]
-    add     rsp,32
-    call    printf
-    sub     rsp,32
+    mov     qword[msg],rdx
+    call    printfNumero
 
     add     rsi,8
     jmp     mantisa1
 ret
 base1:
-    mov     rcx, stringFormato
-    mov     rdx, msgBase
-    add     rsp,32
-    call    printf
-    sub     rsp,32
+    mov     qword[msg], msgBase
+    call    printfString
 
     mov     rsi,8
     cmp     qword[flagNeg],1
     je      negativo1
 
 elExponente1:
- mov     rsi,56
+    mov     rsi,56
 expo1:
     cmp     rsi,0
-    jl     final
+    jl      final
  
     mov     rdx,[vectorExponente+rsi]
     mov     qword[msg],rdx
     call    printfNumero
 
-
     sub     rsi,8
     jmp     expo1
 ret
 signoNegativoC1:
-    mov     rcx,numeroFormato
-    mov     rdx,-1
-
-    add     rsp,32
-    call    printf
-    sub     rsp,32
-    mov rsi, 72
+    mov     qword[msg],-1
+    call    printfNumero
+    mov     rsi, 72
     jmp     laComa1
 signoPositivoC1:
-    mov     rcx,numeroFormato
-    mov     rdx,1
-    add     rsp,32
-    call    printf
-    sub     rsp,32
-
+    mov     qword[msg],1
+    call    printfNumero
     add     rsi,64
 normalizo:
     add     rsi,8
-    cmp qword[vectorResultado+rsi],0
-    je  normalizo
-    add rsi,8
+    cmp     qword[vectorResultado+rsi],0
+    je      normalizo
+    add     rsi,8
     jmp     laComa1  
 ret
 traducir:
@@ -739,56 +721,37 @@ es15:
     jmp     listo
   
 expoIngreNegativo:
-    mov qword[flagNeg],1
-    jmp ingresarCantDigitos
+    mov     qword[flagNeg],1
+    jmp     ingresarCantDigitos
 ret
 expoIngrePositivo:
-    mov qword[flagNeg],0
-    jmp ingresarCantDigitos
+    mov     qword[flagNeg],0
+    jmp     ingresarCantDigitos
 ret
 ;-----------------------------------------------------------;
 ; Pasar Notacion cientifica a configuracion                 ;
 ;-----------------------------------------------------------;
 accion2:
-    mov  	rcx,msgenter
-	sub     rsp,32
-	call 	puts
-    add     rsp,32
-
+    mov  	qword[msg],msgenter
+	call 	putss
     mov     rsi,0
-
-    mov  	rcx,msgSubOpcion2
-	sub     rsp,32
-	call 	puts
-    add     rsp,32
+    mov  	qword[msg],msgSubOpcion2
+	call 	putss
 ingresarCoeficiente:
     cmp     rsi,192
     jge     ingresarSignoExponente
 
-    mov  	rcx,msgIngCoef
-    add     rsp,32
-	call 	printf
-    sub     rsp,32
+    mov  	qword[msg],msgIngCoef
+	call 	printfString
 
-    mov     rcx,opcionIngresada
-    add     rsp,32
-    call    gets
-    sub     rsp,32
+    mov     qword[msg],opcionIngresada
+    call    getss
 
-    mov 	rcx,opcionIngresada
-	mov		rdx,numeroFormato
-	mov 	r8,opcion
-	sub     rsp,32
-	call	sscanf
-    add     rsp,32
-
-	cmp		rax,1
-	jl		errorIngresoOpcion
+    mov 	qword[msg],opcionIngresada
+	call    scanfNumero
 
     call    validarBinario
-
     call    agregarNCAVector
-
     jmp     ingresarCoeficiente
 ingresarSignoExponente:
     mov  	qword[msg],msgIngSignoExpo
@@ -800,10 +763,10 @@ ingresarSignoExponente:
     cmp     qword[opcionIngresada],'-'
     je      expoIngreNegativo
 
-    cmp qword[opcionIngresada],'+'
-    je     expoIngrePositivo
+    cmp     qword[opcionIngresada],'+'
+    je      expoIngrePositivo
 
-    jmp errorIngresoOpcion
+    jmp     errorIngresoOpcion
 ingresarCantDigitos:
     mov  	qword[msg],msgIngCantDigit
     call    printfString
@@ -811,89 +774,48 @@ ingresarCantDigitos:
     mov     qword[msg],opcionIngresada
     call    getss
 
-    mov 	rcx,opcionIngresada
-	mov		rdx,numeroFormato
-	mov 	r8,opcion
-	sub     rsp,32
-	call	sscanf
-    add     rsp,32
+    mov 	qword[msg],opcionIngresada
+	call    scanfNumero
 
-    mov r8,qword[opcion]
-    mov r9,8
-
-    imul r8,r9
-
-    mov qword[aux0],r8
-
-   add qword[aux0],192
-   mov rcx, numeroFormato
-   mov rdx, qword[aux0]
-   call printf
-   
-
+    mov     r8,qword[opcion]
+    mov     r9,8
+    imul    r8,r9
+    mov     qword[aux0],r8
+    add     qword[aux0],192
     mov     rsi,192
 ingresarExponente:
-    cmp     rsi,qword[aux0];224
+    cmp     rsi,qword[aux0]
     jge     printNCienti
 
-    mov  	rcx,msgIngExpo
-    add     rsp,32
-	call 	printf
-    sub     rsp,32
+    mov  	qword[msg],msgIngExpo
+	call 	printfString
 
-    mov     rcx,opcionIngresada
-    add     rsp,32
-    call    gets
-    sub     rsp,32
+    mov     qword[msg],opcionIngresada
+    call    getss
 
-    mov 	rcx,opcionIngresada
-	mov		rdx,numeroFormato
-	mov 	r8,opcion
-	sub     rsp,32
-	call	sscanf
-    add     rsp,32
-
-	cmp		rax,1
-	jl		errorIngresoOpcion
+    mov 	qword[msg],opcionIngresada
+	call    scanfNumero
     
     call    agregarNCAVector
-
     jmp     ingresarExponente     
 visualizar:
-    mov     rcx,msgenter
-    add     rsp,32
-    call    puts
-    sub     rsp,32
+    mov     qword[msg],msgenter
+    call    putss
     
-    mov  	rcx,msgConfSelec
-	sub     rsp,32
-	call 	puts
-    add     rsp,32
+    mov  	qword[msg],msgConfSelec
+	call 	putss
 
-    mov  	rcx,msgSubOpcion11
-	sub     rsp,32
-	call 	puts
-    add     rsp,32
+    mov  	qword[msg],msgSubOpcion11
+	call 	putss
 
-    mov  	rcx,msgSubOpcion12
-	sub     rsp,32
-	call 	puts
-    add     rsp,32
+    mov  	qword[msg],msgSubOpcion12
+	call 	putss
 
-    mov     rcx,opcionIngresada
-    add     rsp,32
-    call    gets
-    sub     rsp,32
+    mov     qword[msg],opcionIngresada
+    call    getss
 
-    mov 	rcx,opcionIngresada
-	mov		rdx,numeroFormato
-	mov 	r8,opcion
-	sub     rsp,32
-	call	sscanf
-    add     rsp,32
-
-	cmp		rax,1
-	jl		errorIngresoOpcion
+    mov 	qword[msg],opcionIngresada
+    call    scanfNumero
 
     call    validarOpcion
 
@@ -905,7 +827,6 @@ ret
 agregarNCAVector:
     mov     rdi,[opcion]
     mov     [vector+rsi],rdi
-
     add     rsi,8
 ret   
 signoNegativo:
@@ -1513,11 +1434,7 @@ avanzo2:
     
     add     qword[aux2],1
 sig2:    
-    sub     rsi,   qword[param1];8
-
-;    mov rcx, numeroFormato
-;    mov rdx, qword[aux]
-;    call printf  
+    sub     rsi,   qword[param1];8 
     jmp     pasarBinaADec2
 ret   
 pasarDecABina2:
@@ -1589,25 +1506,12 @@ avanzo2B:
     
     add     qword[aux2],1
 sig2B:    
-    sub     rsi,   qword[param1];8
-
-;    mov rcx, numeroFormato
-;    mov rdx, qword[aux]
-;    call printf  
+    sub     rsi,   qword[param1];8 
     jmp     pasarBinaADec2B
 ret   
 
 pasarDecABina2B:
-
     mov     qword[aux2],2
- ;   mov     rsi,0
- ;   mov     rbx,8
-;   mov rcx, numeroFormato
-;   mov rdx,qword[aux2]
-;   call printf
-;   mov rcx, numeroFormato
-;   mov rdx,qword[aux]
-;   call printf
 divido2B:    
     cmp     qword[aux],2
     jl      termine2B
@@ -1621,23 +1525,16 @@ divido2B:
     mov     qword[aux],rax
    mov rcx, numeroFormato
    mov rdx,rdx;qword[aux0]
-  ; call printf
     mov     rdi,rdx
     mov     [vectorExponente+rsi],rdi ; agregar a vector
     mov rcx, numeroFormato
-    ;mov rdx,[vectorExponente+rsi]
-    ;call printf
     add     rsi,8
 
     jmp     divido2B
 termine2B:
-;   mov rcx, numeroFormato
-;   mov rdx, qword[aux]
-;   call printf
     mov     rdi,qword[aux]
     mov     [vectorExponente+rsi],rdi ; agrego ultimo pedazo a vector 
     add     rsi,8
-
 ret
 putss:
     mov rcx,qword[msg]
