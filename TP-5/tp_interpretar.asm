@@ -489,96 +489,49 @@ limpioVector:
 
     jmp     limpioVector
 limpio:
+    mov     qword[param],0
+    mov     qword[param1],8
+    mov     rsi,qword[param]
+    mov     rbx,qword[param1]
     call    pasarDecABina2
-pasarDecABinaH:
-    mov qword[aux2],2
-    mov rsi,0
-    mov rbx,8
- ;   mov rcx, numeroFormato
-  ;  mov rdx,qword[aux2]
-   ; call printf
 
-   ; mov rcx, numeroFormato
-    ;mov rdx,qword[aux]
-    ;call printf
-
-   
-dividoH:    
-    cmp     qword[aux],2
-    jl      termineH
-    mov     rax,qword[aux] ;lo q voy a dividir 
-    sub     rdx,rdx
-    idiv    qword[aux2] ; divido por 2 
-  ;  mov     qword[aux0],rdx
-    inc     qword[contador]
-
-    mov qword[aux],rax
-  ;  mov rcx, numeroFormato
-   ; mov rdx,rdx;qword[aux0]
-    ;call printf
-    ;mov rcx, msgenter
-    ;call puts
- 
-    mov rdi,rdx
-    mov [vector+rsi],rdi
-vuelvoADividir:   
-    add rsi,8
-    jmp dividoH
-termineH:
- ;   mov rcx, numeroFormato
-  ;  mov rdx, qword[aux]
-   ; call printf
-   mov rdi,qword[aux]
-    mov [vector+rsi],rdi
-    add rsi,8
-     mov rcx, msgenter
-    call puts
-    mov rcx, numeroFormato
-    mov rdx, qword[contador]
-   ; call printf
-    mov rsi,248
-    mov rbx,0
+    mov     rsi,248
+    mov     rbx,0
 verH:
-    cmp rsi, 0
-    jl averH
+    cmp     rsi, 0
+    jl      averH
+
     mov     rcx,numeroFormato
     mov     rdx,[vector+rsi]
-    mov [vectorResultado+rbx],rdx
-    add rbx,8
-    call    printf
-    sub rsi,8
-    jmp verH
+    mov     [vectorResultado+rbx],rdx
+    add     rbx,8
+    sub     rsi,8
+    jmp     verH
 ret
 averH:
-    mov rsi,0
-    mov rcx, msgRNCBin
-    call puts
+    mov     rsi,0
+    mov     rcx, msgRNCBin
+    call    puts
 ver2H:
-    cmp rsi, 256
-    jge endH
-    mov     rcx,numeroFormato
+    cmp     rsi, 256
+    jge     endH
+    
     mov     rdx,[vectorResultado+rsi]
-    call    printf
+    mov     qword[msg],rdx
+    call    printfNumero
     add rsi,8
     jmp ver2H
 ret
 exponentesNegativo1:
-    sub     qword[aux],127
-    not     qword[aux]
-    inc     qword[aux]
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-    call    printf
-    mov     qword[flagNeg],1
+    call     exponentesNegativo
     jmp     pasarExponenteABinario1
 ret
 exponentesCero1:
-    mov     qword[aux],0
+    call    exponentesCero
     jmp     pasarExponenteABinario1
 ret
 exponentesPostivo1:
-    sub     qword[aux],127
-    mov     qword[flagNeg],0
+    call    exponentesPostivo
     jmp     pasarExponenteABinario1
 ret
 negativo1:
@@ -588,31 +541,14 @@ negativo1:
 ret
 endH:
 binarioValido1:
-    mov     rsi,0
-
-    mov		rcx,msgnumBina
-    add     rsp,32
-	call	printf	
-    sub     rsp,32
-printearNumeros1:
-    cmp     rsi,256
-
-    jge     calcularExponente1
-
-    call    printGeneral1
-
-    jmp     printearNumeros1
 calcularExponente1:
-    mov     rcx, msgenter
-    add     rsp,32
-    call    puts
-    sub     rsp,32
-
+    mov     qword[msg], msgenter
+    call    putss
 pasarExponenteEnExcesoADecimal1:
     mov     rsi,64
     mov     qword[param1],8
-    mov qword[aux2],0
-    mov qword[aux],0
+    mov     qword[aux2],0
+    mov     qword[aux],0
 
     call    pasarBinaADec2
 calculoResta1271:
@@ -620,52 +556,33 @@ calculoResta1271:
     jl      exponentesNegativo1   
     je      exponentesCero1
     jg      exponentesPostivo1
-
 pasarExponenteABinario1:
-    mov rsi,0
+    mov     rsi,0
 reinicioVector1:
-    cmp rsi,72
-    jge sigoo1
-    mov qword[vectorExponente+rsi],0
-    add rsi,8
-    jmp reinicioVector1
+    cmp     rsi,72
+    jge     sigoo1
+    mov     qword[vectorExponente+rsi],0
+    add     rsi,8
+    jmp     reinicioVector1
 sigoo1:
-    mov rsi,0
-    mov rbx,0
-    mov qword[param],0
-    mov qword[param1],8
+    mov     rsi,0
+    mov     rbx,0
+    mov     qword[param],0
+    mov     qword[param1],8
     mov     rsi,qword[param];56
     mov     rbx,qword[param1];8
-    call pasarDecABina2
+    call    pasarDecABina2B
     
-    mov     rcx, msgenter
-    add     rsp, 32
-    call    puts
-    sub     rsp, 32
-    
-invertirVector1:
-    cmp     rsi,0
-    jl     imprimoResultadoCaso111;aver2
-
-    mov     rdx,[vector+rsi]
-    mov     [vectorNuevo+rbx],rdx
-    add     rbx,8
-    sub     rsi,8
-
-    jmp     invertirVector1  
+    mov     qword[msg], msgenter
+    call    putss
 imprimoResultadoCaso111:
 AntesDeLaComa1:
-    mov     rcx,msgenter
-    add     rsp,32
+    mov     qword[msg],msgenter
     call    puts
-    sub     rsp,32
 
-    mov     rcx, msgRBANC
-    add     rsp,32
+    mov     qword[msg], msgRBANC
     call    puts
-    sub     rsp,32
 
-     
     mov     rsi,0
     mov     rdx,[vectorResultado+rsi]
 
@@ -674,13 +591,8 @@ AntesDeLaComa1:
     cmp     rdx,1
     je      signoNegativoC1
 laComa1:
-   mov      rcx, stringFormato
-   mov      rdx, msgcoma
-   add      rsp,32
-   call     printf
-   sub      rsp,32
-
-   ;mov      rsi,72
+   mov      qword[msg], msgcoma
+   call     printfString
 mantisa1:
     cmp     rsi,256
     jge     base1
@@ -825,10 +737,7 @@ es14:
 es15:
     mov     qword[inputNumeros],15
     jmp     listo
-exponentes01:
-    mov qword[aux],0
-    jmp pasarDecABina2
-ret    
+  
 expoIngreNegativo:
     mov qword[flagNeg],1
     jmp ingresarCantDigitos
@@ -1611,18 +1520,8 @@ sig2:
 ;    call printf  
     jmp     pasarBinaADec2
 ret   
-
 pasarDecABina2:
-
     mov     qword[aux2],2
- ;   mov     rsi,0
- ;   mov     rbx,8
-;   mov rcx, numeroFormato
-;   mov rdx,qword[aux2]
-;   call printf
-;   mov rcx, numeroFormato
-;   mov rdx,qword[aux]
-;   call printf
 divido2:    
     cmp     qword[aux],2
     jl      termine2
@@ -1634,22 +1533,16 @@ divido2:
     inc     qword[contador]
 
     mov     qword[aux],rax
-;   mov rcx, numeroFormato
-;   mov rdx,rdx;qword[aux0]
-;   call printf
+; 
     mov     rdi,rdx
-    mov     [vectorExponente+rsi],rdi ; agregar a vector
+    mov     [vector+rsi],rdi ; agregar a vector
     add     rsi,8
 
     jmp     divido2
 termine2:
-;   mov rcx, numeroFormato
-;   mov rdx, qword[aux]
-;   call printf
     mov     rdi,qword[aux]
-    mov     [vectorExponente+rsi],rdi ; agrego ultimo pedazo a vector 
+    mov     [vector+rsi],rdi ; agrego ultimo pedazo a vector 
     add     rsi,8
-
 ret
 pasarBinaADec2B:
     cmp     rsi,qword[param1];8   
