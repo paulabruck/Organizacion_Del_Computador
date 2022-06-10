@@ -39,7 +39,6 @@ section .data
     aux0                        dq  0
     aux                         dq  0
     aux2                        dq  0
-    aux3                        dq  0
     param                       dq  0
     param1                      dq  0
     msg                         dq  0
@@ -120,12 +119,12 @@ ret
 ; Valida si el numero ingresado es binario                  ;
 ;-----------------------------------------------------------;    
 validarBinario:
-    cmp     word[opcion],1
-    jne     sera0
+    cmp word[opcion],1
+    jne  sera0
 ret
 sera0:
-    cmp     word[opcion],0
-    jne     errorIngresoOpcion
+    cmp word[opcion],0
+    jne  errorIngresoOpcion
 ret 
 ;-----------------------------------------------------------;
 ; Valida si el numero ingresado es hexadecimal              ;
@@ -205,8 +204,9 @@ exponentesCero2:
 exponentesPostivo2:
     call    exponentesPostivo
     jmp     pasarExponenteABinario
-negativo2:
-    call    negativo
+negativo:
+    mov     qword[msg],msgNegativo
+    call    printfString
     jmp     elExponente
 ret
 ;-----------------------------------------------------------;
@@ -246,17 +246,14 @@ printearNumeros:
     cmp     rsi,256
     jge     calcularExponente
    
-    mov     rdx,[vector+rsi]
-    mov     qword[aux3], rdx
-    mov     qword[msg],8
     call    printGeneral
-    
     jmp     printearNumeros
 calcularExponente:
     mov     qword[msg],msgenter
     call    putss
 pasarExponenteEnExcesoADecimal:
-    mov     qword[param],64
+    mov     rsi,64
+    mov     qword[param],8
     mov     qword[param1],8
 
     call    pasarBinaADec2B
@@ -323,7 +320,7 @@ base:
 
     mov     rsi,8
     cmp     qword[flagNeg],1
-    je      negativo2
+    je      negativo
 elExponente:
     mov     rsi,56
 expo:
@@ -368,8 +365,6 @@ ingresoHexadecimal:
     call    validarHexadecimal
 agregarHexaAVector: 
     mov     qword[aux],4
-    mov     rdx,[inputNumeros]
-    mov     qword[msg],rdx;aca
     call    rellenarVector
 pasarHexaADeci:
     jmp     traducir
@@ -384,8 +379,7 @@ hexadecimalValido:
     mov     rsi,0
    
     mov		qword[msg],msgnumHexa	
-	call	printfString	
-
+	call	printfString	  
 printearHexa:
     cmp     rsi,32
     jge     vectorHexaPrinteado
@@ -400,15 +394,13 @@ printearHexa:
     jmp     printearHexa
 vectorHexaPrinteado:
     mov     rsi,0
-    mov     qword[msg],msgenter
-    call    putss  
 hexaABina:
+    mov     qword[msg],msgenter
+    call    putss
+
     mov     rsi,56
     mov     qword[aux2],0
     mov     qword[aux],0
-
-    mov     qword[msg],msgenter
-    call    putss
 calcularResultado:
 ;-----------------------------------------------------------;
 ; Pasar hexadec a  decimal                                  ;
@@ -416,6 +408,9 @@ calcularResultado:
 pasarHexaADec:
     cmp     rsi,0    
     jl      hexaABina1
+
+    mov     qword[msg],msgenter
+    call    putss
 
     mov     rdx,[vectorNuevo+rsi]
     mov     rcx, qword[aux2]
@@ -502,9 +497,8 @@ ver2H:
     
     mov     rdx,[vectorResultado+rsi]
     mov     qword[msg],rdx
-    mov     qword[aux],8
-    call    printGeneral
-   
+    call    printfNumero
+    add     rsi,8
     jmp     ver2H
 ret
 exponentesNegativo1:
@@ -520,7 +514,8 @@ exponentesPostivo1:
     jmp     pasarExponenteABinario1
 ret
 negativo1:
-    call    negativo
+    mov     qword[msg],msgNegativo
+    call    printfString
     jmp     elExponente1
 ret
 endH:
@@ -577,11 +572,11 @@ laComa1:
 mantisa1:
     cmp     rsi,256
     jge     base1
-
     mov     rdx,[vectorResultado+rsi]
     mov     qword[msg],rdx
-    mov     qword[aux],8
-    call    printGeneral
+    call    printfNumero
+
+    add     rsi,8
     jmp     mantisa1
 ret
 base1:
@@ -601,7 +596,7 @@ expo1:
     mov     rdx,[vectorExponente+rsi]
     mov     qword[msg],rdx
     call    printfNumero
-    
+
     sub     rsi,8
     jmp     expo1
 ret
@@ -616,7 +611,6 @@ signoPositivoC1:
     add     rsi,64
 normalizo:
     add     rsi,8
-
     cmp     qword[vectorResultado+rsi],0
     je      normalizo
     add     rsi,8
@@ -688,11 +682,7 @@ ingresarCoeficiente:
 	call    scanfNumero
 
     call    validarBinario
-
-    mov     rdx,[opcion]
-    mov     qword[msg],rdx
-    mov     qword[aux],8
-    call    rellenarVector
+    call    agregarNCAVector
     jmp     ingresarCoeficiente
 ingresarSignoExponente:
     mov  	qword[msg],msgIngSignoExpo
@@ -736,11 +726,8 @@ ingresarExponente:
 
     mov 	qword[msg],opcionIngresada
 	call    scanfNumero
-
-    mov     rdx,[opcion]
-    mov     qword[msg],rdx
-    mov     qword[aux],8
-    call    rellenarVector
+    
+    call    agregarNCAVector
     jmp     ingresarExponente     
 visualizar:
     mov     qword[msg],msgenter
@@ -768,7 +755,11 @@ visualizar:
     cmp     word[opcion],2
     je      aConfHexa
 ret
- 
+agregarNCAVector:
+    mov     rdi,[opcion]
+    mov     [vector+rsi],rdi
+    add     rsi,8
+ret   
 signoNegativo:
     mov     rsi,0
     mov     rdi,1
@@ -786,15 +777,14 @@ ret
 printNCienti:
     mov     rcx, msgNotCien
     add     rsp,32
-    call    printf
+    call    printf ;falta
     sub     rsp,32
 
     mov     rsi,0
 printAntesComa:
     cmp     rsi,8
     jge     printComa
-    mov     rdx,[vector+rsi]
-    mov     qword[aux3], rdx
+
     call    printGeneral
 
     cmp     qword[vector+rsi],-1
@@ -810,8 +800,7 @@ printComa:
 printCoef:
     cmp     rsi,192
     jge     printBase
-    mov     rdx,[vector+rsi]
-    mov     qword[aux3], rdx
+
     call    printGeneral
     
     mov     rdi,[vector+rsi]
@@ -827,8 +816,7 @@ printBase:
 printExpo:
     cmp     rsi,qword[aux0]
     jge     visualizar
-    mov     rdx,[vector+rsi]
-    mov     qword[aux3], rdx
+
     call    printGeneral
 
     jmp     printExpo
@@ -842,7 +830,7 @@ calcularExpoExceso:
 ;-----------------------------------------------------------;
     mov     qword[param],192
     mov     qword[param1],8
-    call    pasarBinaADe2B
+    call    pasarBinaADec2B
 decimalNegativo:
     not     qword[aux]
     inc     qword[aux]
@@ -893,8 +881,9 @@ ver2:
     cmp     rsi, 256
     jge     final
     mov     rdx,[vectorResultado+rsi]
-    mov     qword[aux3], rdx
-    call    printGeneral
+    mov     qword[msg],rdx
+    call    printfNumero
+    add     rsi,8
     jmp     ver2
 aConfHexa:
     call    aConfBinaria
@@ -922,7 +911,7 @@ divido1:
     inc     qword[contador]
 
     mov     qword[aux],rax
-    mov     rdx,rdx
+    mov     rdx,rdx;qword[aux0]
     mov     rdi,rdx
 
 convertir:
@@ -941,9 +930,8 @@ convertir:
 
     add     rdi,48
 agregoo:
-    mov     qword[msg],rdi
-    mov     qword[aux] ,4
-    call    rellenarVector
+    mov     [vector+rsi],rdi
+    add     rsi,4
     jmp     divido1
 esA:
     mov     rdi,'A'
@@ -1002,10 +990,8 @@ termine1:
     mov     rdi,qword[aux]
     jmp     convertir1
 sigo:  
-    mov     qword[msg],rdi
-    mov     qword[aux] ,4
-    call    rellenarVector
-    
+    mov     [vector+rsi],rdi
+    add     rsi,4
     mov     rsi,27
     mov     rbx,4
 aver1:
@@ -1025,35 +1011,27 @@ ver21:
     jmp     ver21
 ret
 printGeneral:
-    mov     rdx,qword[aux3]
+    mov     rdx,[vector+rsi]
     mov     qword[msg],rdx
     call    printfNumero
     add     rsi,8
 ret
 rellenarVector:
-    mov     rdi,qword[msg]
+    mov     rdi,[inputNumeros]
     mov     [vector+rsi],rdi
-
-    add     rsi,qword[aux]
-ret
-rellenarVectorExponente:
-    mov     rdi,qword[msg]
-    mov     [vectorExponente+rsi],rdi
 
     add     rsi,qword[aux]
 ret
 final:
 ret
 pasarBinaADec2:
-    cmp     rsi,qword[param1];8   
-    jl      final;calculoResta127
-    
+    cmp     rsi,qword[param1]
+    jl      final
     mov     rcx, qword[aux2]
     mov     qword[aux0],rcx
 
     cmp     qword[vectorResultado+rsi],0
     je      avanzo2
-
     cmp     qword[vectorResultado+rsi],1
     je      cont2
 cont2:
@@ -1064,15 +1042,12 @@ cont2:
 
     mov     r8,2
     mov     r9,2
-
     jmp     potencia2
 elevadoA02:
     inc     qword[aux]
-
     jmp     avanzo2
 elevadoA12:
     add     qword[aux],2
-
     jmp     avanzo2
 potencia2:
     imul    r8,r9
@@ -1088,7 +1063,7 @@ avanzo2:
     
     add     qword[aux2],1
 sig2:    
-    sub     rsi,   qword[param1];8 
+    sub     rsi,  qword[param1]
     jmp     pasarBinaADec2
 ret   
 pasarDecABina2:
@@ -1105,7 +1080,6 @@ divido2:
 
     mov     qword[aux],rax
     mov     rdi,rdx
-
     mov     [vector+rsi],rdi ; agregar a vector
     add     rsi,8
 
@@ -1116,8 +1090,8 @@ termine2:
     add     rsi,8
 ret
 pasarBinaADec2B:
-    cmp     rsi,qword[param];8   
-    jl      final;calculoResta127
+    cmp     rsi,qword[param]
+    jl      final
     
     mov     rcx, qword[aux2]
     mov     qword[aux0],rcx
@@ -1134,7 +1108,6 @@ cont2B:
 
     mov     r8,2
     mov     r9,2
-
     jmp     potencia2B
 elevadoA02B:
     inc     qword[aux]
@@ -1142,7 +1115,6 @@ elevadoA02B:
     jmp     avanzo2B
 elevadoA12B:
     add     qword[aux],2
-
     jmp     avanzo2B
 potencia2B:
     imul    r8,r9
@@ -1158,10 +1130,10 @@ avanzo2B:
     
     add     qword[aux2],1
 sig2B:    
-    sub     rsi,   qword[param1];8 
+    sub     rsi,qword[param]
+   
     jmp     pasarBinaADec2B
 ret   
-
 pasarDecABina2B:
     mov     qword[aux2],2
 divido2B:    
@@ -1175,7 +1147,7 @@ divido2B:
     inc     qword[contador]
 
     mov     qword[aux],rax
-    mov     rdx,rdx;qword[aux0]
+    mov     rdx,rdx
     mov     rdi,rdx
     mov     [vectorExponente+rsi],rdi ; agregar a vector
     add     rsi,8
@@ -1193,14 +1165,14 @@ putss:
     add     rsp,32
 ret
 getss:
-    mov rcx,qword[msg]
+    mov     rcx,qword[msg]
     sub     rsp,32
 	call 	gets
     add     rsp,32
 ret
 printfString:
-    mov rcx, stringFormato
-    mov rdx, qword[msg]
+    mov     rcx, stringFormato
+    mov     rdx, qword[msg]
     sub     rsp,32
 	call 	printf
     add     rsp,32
@@ -1234,8 +1206,4 @@ ret
 exponentesPostivo:
     sub     qword[aux],127
     mov     qword[flagNeg],0
-ret
-negativo:
-    mov     qword[msg],msgNegativo
-    call    printfString
 ret
