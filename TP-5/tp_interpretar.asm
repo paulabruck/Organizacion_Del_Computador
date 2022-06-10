@@ -264,7 +264,7 @@ binarioValido:
 printearNumeros:
     cmp     rsi,256
     jge     calcularExponente
-
+   
     call    printGeneral
     jmp     printearNumeros
 calcularExponente:
@@ -959,313 +959,131 @@ aConfHexa:
     mov     qword[aux2],0
     mov     qword[aux0],0
 c:    
-pasarBinaADec1:
-    cmp     rsi,0    
-    jl      impri
-
-  
-    mov     rcx, qword[aux2]
-    mov     qword[aux0],rcx
-
-    cmp     qword[vectorResultado+rsi],0
-    je      avanzo1
-    cmp     qword[vectorResultado+rsi],1
-    je      cont1
-cont1:
-    mov     rcx, qword[aux2]
-    mov     qword[aux0],rcx
-
-    cmp     qword[aux2],0
-    je      elevadoA01
-    cmp qword[aux2],1
-    je  elevadoA11
-    mov r8,2
-    mov r9,2
-    jmp potencia1
-elevadoA01:
-    inc qword[aux]
-    jmp avanzo1
-ret
-elevadoA11:
-    add qword[aux],2
-    jmp avanzo1
-ret   
-potencia1:
-    imul r8,r9
-    dec qword[aux2]
-    cmp qword[aux2],1
-    jne  potencia1
-    add qword[aux],r8
-    
-avanzo1:   
-    mov rcx, qword[aux0]
-    mov qword[aux2],rcx
-    add qword[aux2],1
-    mov rdx,qword[aux2]
-sig1:    
-    sub rsi,8
-    jmp c
-ret
-impri:    
-  
+    call    pasarBinaADec2
 pasarDeciAHexa:
-    mov qword[aux2],16 
-    mov rsi,0
-    mov rbx,4
-
+    mov     qword[aux2],16 
+    mov     rsi,0
+    mov     rbx,4
 divido1:    
     cmp     qword[aux],16
     jl      termine1
+
     mov     rax,qword[aux] ;lo q voy a dividir 
     sub     rdx,rdx
     idiv    qword[aux2] ; divido por 2 
     inc     qword[contador]
 
-     mov qword[aux],rax
-    mov rdx,rdx;qword[aux0]
-    mov rdi,rdx
-    cmp rdi,9
-    jg convertir
-    jmp conversionN
-    
-agregoo:
-    mov [vector+rsi],rdi
-    
-    add rsi,4
-    jmp divido1
+    mov     qword[aux],rax
+    mov     rdx,rdx;qword[aux0]
+    mov     rdi,rdx
+
 convertir:
-    cmp rdi,10
-    je esA
-    cmp rdi,11
-    je esB
-    cmp rdi,12
-    je esC
-    cmp rdi,13
-    je esD
-    cmp rdi,14
-    je esE
-    cmp rdi,15
-    je esF
-ret
+    cmp     rdi,10
+    je      esA
+    cmp     rdi,11
+    je      esB
+    cmp     rdi,12
+    je      esC
+    cmp     rdi,13
+    je      esD
+    cmp     rdi,14
+    je      esE
+    cmp     rdi,15
+    je      esF
+
+    add     rdi,48
+agregoo:
+    mov     [vector+rsi],rdi
+    add     rsi,4
+    jmp     divido1
 esA:
-    mov rdi,'A'
-    jmp agregoo
-ret
+    mov     rdi,'A'
+    jmp     agregoo
 esB:
-    mov rdi,'B'
-    jmp agregoo
-ret
+    mov     rdi,'B'
+    jmp     agregoo
 esC:
-    mov rdi,'C'
-    jmp agregoo
-ret
+    mov     rdi,'C'
+    jmp     agregoo
 esD:
-    mov rdi,'D'
-jmp agregoo
-ret
+    mov     rdi,'D'
+    jmp     agregoo
 esE:
-    mov rdi,'E'
-jmp agregoo
-ret
+    mov     rdi,'E'
+    jmp     agregoo
 esF:
-    mov rdi,'F'
-    jmp agregoo
-ret
-conversionN:
-    cmp rdi,1
-    je  es1
-    cmp rdi,2
-    je  es2
-    cmp rdi,3
-    je  es3
-    cmp rdi,4
-    je  es4
-    cmp rdi,5
-    je  es5
-    cmp rdi,6
-    je  es6
-    cmp rdi,7
-    je  es7
-    cmp rdi,8
-    je  es8
-    cmp rdi,9
-    je  es9
-    cmp rdi,0
-    je es0
-ret
-es0:
-mov rdi,'0'
-jmp agregoo
-es1:
-    mov rdi,'1'
-    jmp agregoo
-es2:
-mov rdi,'2'
-jmp agregoo
-es3:
-mov rdi,'3'
-jmp agregoo
-es4:
-mov rdi,'4'
-jmp agregoo
-es5:
-mov rdi,'5'
-jmp agregoo
-es6:
-mov rdi,'6'
-jmp agregoo
-es7:
-mov rdi,'7'
-jmp agregoo
-es8:
-mov rdi,'8'
-jmp agregoo
-es9:
-mov rdi,'9'
-jmp agregoo
+    mov     rdi,'F'
+    jmp     agregoo
 convertir1:
-    cmp rdi,1
-    je  es11
-    cmp rdi,2
-    je  es21
-    cmp rdi,3
-    je  es31
-    cmp rdi,4
-    je  es41
-    cmp rdi,5
-    je  es51
-    cmp rdi,6
-    je  es61
-    cmp rdi,7
-    je  es71
-    cmp rdi,8
-    je  es81
-    cmp rdi,9
-    je  es91
-    cmp rdi,0
-    je es01
-    cmp rdi,10
-    je esA11
-    cmp rdi,11
-    je esB1
-    cmp rdi,12
-    je esC1
-    cmp rdi,13
-    je esD1
-    cmp rdi,14
-    je esE1
-    cmp rdi,15
-    je esF1
+    cmp     rdi,10
+    je      esA11
+    cmp     rdi,11
+    je      esB1
+    cmp     rdi,12
+    je      esC1
+    cmp     rdi,13
+    je      esD1
+    cmp     rdi,14
+    je      esE1
+    cmp     rdi,15
+    je      esF1
+
+    add     rdi,48
+    jmp     sigo
 ret
 esA11:
-    mov rdi,'A'
-    jmp sigo
-
+    mov     rdi,'A'
+    jmp     sigo
 esB1:
-    mov rdi,'B'
-    jmp sigo
-
+    mov     rdi,'B'
+    jmp     sigo
 esC1:
-    mov rdi,'C'
-    jmp sigo
+    mov     rdi,'C'
+    jmp     sigo
 esD1:
-    mov rdi,'D'
-
-jmp sigo
+    mov     rdi,'D'
+    jmp     sigo
 esE1:
-    mov rdi,'E'
-
-jmp sigo
+    mov     rdi,'E'
+    jmp     sigo
 esF1:
-    mov rdi,'F'
-    jmp sigo
-
-es01:
-mov rdi,'0'
-jmp sigo
-es11:
-    mov rdi,'1'
-    jmp sigo
-es21:
-mov rdi,'2'
-jmp sigo
-es31:
-mov rdi,'3'
-jmp sigo
-es41:
-mov rdi,'4'
-jmp sigo
-es51:
-mov rdi,'5'
-jmp sigo
-es61:
-mov rdi,'6'
-jmp sigo
-es71:
-mov rdi,'7'
-jmp sigo
-es81:
-mov rdi,'8'
-jmp sigo
-es91:
-mov rdi,'9'
-jmp sigo
+    mov     rdi,'F'
+    jmp     sigo
 termine1:
-    mov rdi,qword[aux]
-    jmp convertir1
+    mov     rdi,qword[aux]
+    jmp     convertir1
 sigo:  
-    mov [vector+rsi],rdi
-    add rsi,4
-    mov rsi,27
-    mov rbx,4
-ver1:
-    cmp rsi, 0
-    jl aver1
-    mov     rcx,stringFormato
-    lea rdx,[vector+rsi]
-    mov [vectorResultado+rbx],rdx
-    add rbx,4
-    sub rsi,4
-    jmp ver1
-ret
+    mov     [vector+rsi],rdi
+    add     rsi,4
+    mov     rsi,27
+    mov     rbx,4
 aver1:
-    mov rsi,36;0
-    mov rcx, msgRNCHexa
-     call puts
+    mov     rsi,36
+    mov     qword[msg], msgRNCHexa
+    call    putss
 ver21:
-    cmp rsi, 0;36
-    jl final
+    cmp     rsi,0
+    jl      final
+
     mov     rcx,stringFormato
-    lea rdx,[vector+rsi]
+    lea     rdx,[vector+rsi]
+    add     rsp,32
     call    printf
-    sub rsi,4
-    jmp ver21
+    sub     rsp,32
+    sub     rsi,4
+    jmp     ver21
 ret
 printGeneral:
-    mov     rcx,numeroFormato
     mov     rdx,[vector+rsi]
-    call    printf
-
-    add rsi,8
-ret
-printGeneral1:
-    mov     rcx,numeroFormato
-    mov     rdx,[vectorResultado+rsi]
-    call    printf
-
-    add rsi,8
+    mov     qword[msg],rdx
+    call    printfNumero
+    add     rsi,8
 ret
 rellenarVector:
-    mov rdi,[inputNumeros]
-    mov [vector+rsi],rdi
+    mov     rdi,[inputNumeros]
+    mov     [vector+rsi],rdi
 
-    add rsi,qword[aux]
-ret
-yo:
-add qword[aux],2
-    mov rcx, numeroFormato
-    mov rdx,qword[aux]
-    call printf
+    add     rsi,qword[aux]
 ret
 final:
 ret
