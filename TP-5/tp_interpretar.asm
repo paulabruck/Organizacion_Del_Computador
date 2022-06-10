@@ -119,67 +119,43 @@ ret
 ; Valida si el numero ingresado es binario                  ;
 ;-----------------------------------------------------------;    
 validarBinario:
-    cmp word[opcion],1
-    jne  sera0
+    cmp     word[opcion],1
+    jne     sera0
 ret
 sera0:
-    cmp word[opcion],0
-    jne  errorIngresoOpcion
+    cmp     word[opcion],0
+    jne     errorIngresoOpcion
 ret 
 ;-----------------------------------------------------------;
 ; Valida si el numero ingresado es hexadecimal              ;
 ;-----------------------------------------------------------; 
 validarHexadecimal:
-    cmp word[inputNumeros],'1'
-    je  agregarHexaAVector
+    cmp     word[inputNumeros],'A'
+    je      agregarHexaAVector
 
-    cmp word[inputNumeros],'2'
-    je  agregarHexaAVector
+    cmp     word[inputNumeros],'B'
+    je      agregarHexaAVector
 
-    cmp word[inputNumeros],'3'
-    je  agregarHexaAVector
+    cmp     word[inputNumeros],'C'
+    je      agregarHexaAVector
 
-    cmp word[inputNumeros],'4'
-    je  agregarHexaAVector
+    cmp     word[inputNumeros],'D'
+    je      agregarHexaAVector
 
-    cmp word[inputNumeros],'5'
-    je  agregarHexaAVector
+    cmp     word[inputNumeros],'E'
+    je      agregarHexaAVector
 
-    cmp word[inputNumeros],'6'
-    je  agregarHexaAVector
+    cmp     word[inputNumeros],'F'
+    je      agregarHexaAVector
 
-    cmp word[inputNumeros],'7'
-    je  agregarHexaAVector
+    sub     word[inputNumeros],48
 
-    cmp word[inputNumeros],'8'
-    je  agregarHexaAVector
+    cmp     word[inputNumeros],0
+    jl      errorIngresoOpcion
+    cmp     word[inputNumeros],9
+    jg      errorIngresoOpcion
 
-    cmp word[inputNumeros],'9'
-    je  agregarHexaAVector
-
-    cmp word[inputNumeros],'0'
-    je  agregarHexaAVector
-
-    cmp word[inputNumeros],'A'
-    je  agregarHexaAVector
-
-    cmp word[inputNumeros],'B'
-    je  agregarHexaAVector
-
-    cmp word[inputNumeros],'C'
-    je  agregarHexaAVector
-
-    cmp word[inputNumeros],'D'
-    je  agregarHexaAVector
-
-    cmp word[inputNumeros],'E'
-    je  agregarHexaAVector
-
-    cmp word[inputNumeros],'F'
-    je  agregarHexaAVector
-
-    jmp errorIngresoOpcion
-ret
+    jmp     agregarHexaAVector
 ;-----------------------------------------------------------;
 ; visualizar configuracion en notacion cientifica           ;
 ;-----------------------------------------------------------; 
@@ -223,9 +199,8 @@ exponentesCero2:
 exponentesPostivo2:
     call    exponentesPostivo
     jmp     pasarExponenteABinario
-negativo:
-    mov     qword[msg],msgNegativo
-    call    printfString
+negativo2:
+    call    negativo
     jmp     elExponente
 ret
 ;-----------------------------------------------------------;
@@ -338,7 +313,7 @@ base:
 
     mov     rsi,8
     cmp     qword[flagNeg],1
-    je      negativo
+    je      negativo2
 elExponente:
     mov     rsi,56
 expo:
@@ -535,8 +510,7 @@ exponentesPostivo1:
     jmp     pasarExponenteABinario1
 ret
 negativo1:
-    mov     qword[msg],msgNegativo
-    call    printfString
+    call    negativo
     jmp     elExponente1
 ret
 endH:
@@ -849,50 +823,9 @@ calcularExpoExceso:
 ;-----------------------------------------------------------;
 ; Pasar binario a  decimal                                  ;
 ;-----------------------------------------------------------;
-pasarBinaADec:
-    cmp     rsi,184    
-    jle     expoExceso
-    
-    mov     rcx, qword[aux2]
-    mov     qword[aux0],rcx
-
-    cmp     qword[vector+rsi],0
-    je      avanzo
-    cmp     qword[vector+rsi],1
-    je      cont
-cont:
-    cmp     qword[aux2],0
-    je      elevadoA0
-    cmp     qword[aux2],1
-    je      elevadoA1
-
-    mov     r8,2
-    mov     r9,2
-    jmp     potencia
-elevadoA0:
-    inc     qword[aux]
-    jmp     avanzo
-ret
-elevadoA1:
-    add     qword[aux],2
-    jmp     avanzo
-ret   
-potencia:
-    imul    r8,r9
-    dec     qword[aux2]
-
-    cmp     qword[aux2],1
-    jne     potencia
-
-    add     qword[aux],r8
-avanzo:   
-    mov     rcx, qword[aux0]
-    mov     qword[aux2],rcx
-    add     qword[aux2],1
-sig:    
-    sub     rsi,8
-    jmp     calcularExpoExceso
-ret    
+    mov     qword[param],192
+    mov     qword[param1],8
+    call    pasarBinaADec2B
 decimalNegativo:
     not     qword[aux]
     inc     qword[aux]
@@ -1160,7 +1093,7 @@ termine2:
     add     rsi,8
 ret
 pasarBinaADec2B:
-    cmp     rsi,qword[param1];8   
+    cmp     rsi,qword[param];8   
     jl      final;calculoResta127
     
     mov     rcx, qword[aux2]
@@ -1281,4 +1214,7 @@ exponentesPostivo:
     sub     qword[aux],127
     mov     qword[flagNeg],0
 ret
-
+negativo:
+    mov     qword[msg],msgNegativo
+    call    printfString
+ret
