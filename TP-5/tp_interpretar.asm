@@ -43,6 +43,7 @@ section .data
     param1                      dq  0
     msg                         dq  0
     flagNeg                     dq  0
+    diferenciaBH                dq  0
     vectorHexa                  times 32 dq 1
     vector                      times 32 dq 1
     vectorResultado             times 32 dq 1
@@ -232,8 +233,8 @@ ingresoBinario:
     call    validarBinario
 agregarAVector:
     mov     rdi,[opcion]
-    mov     [vector+rsi],rdi
-    mov     [vectorAux+rsi],rdi
+    mov     [vectorResultado+rsi],rdi
+   ; mov     [vector+rsi],rdi
     add     rsi,8
 
     jmp     ingresoBinario
@@ -255,8 +256,11 @@ pasarExponenteEnExcesoADecimal:
     mov     rsi,64
     mov     qword[param],8
     mov     qword[param1],8
-
-    call    pasarBinaADec2B
+    call    pasarBinaADec2
+    mov     rcx,numeroFormato
+    mov     rdx,qword[aux]
+    call    printf
+   ; call    pasarBinaADec2B
 calculoResta127:
     cmp     qword[aux],127
     jl      exponentesNegativo2   
@@ -291,8 +295,8 @@ AntesDeLaComa:
     mov     qword[msg], msgRBANC
     call    putss
 
-    mov     rsi,0
-    mov     rdx,[vectorAux+rsi]
+  ;  mov     rsi,0
+    mov     rdx,[vectorResultado+rsi]
 
     cmp     rdx,0
     je      signoPositivoC
@@ -302,12 +306,12 @@ laComa:
    mov      qword[msg], msgcoma
    call     printfString
 
-   mov      rsi,72
+ ;  mov      rsi,72
 mantisa:
     cmp     rsi,256
     jge     base
 
-    mov     rdx,[vectorAux+rsi]
+    mov     rdx,[vectorResultado+rsi]
     mov     qword[msg],rdx
     call    printfNumero
 
@@ -458,17 +462,21 @@ sigH:
 ret  
 hexaABina1:
     mov     rsi,0
+    mov rcx, numeroFormato
+    mov rdx,qword[aux]
+    call printf
 limpioVector:
     cmp     rsi,256
     je      limpio
 
     mov     qword[vector+rsi],0
     mov     qword[vectorResultado+rsi],0
+    mov     qword[vectorExponente+rsi],0
     add     rsi,8
 
     jmp     limpioVector
 limpio:
-    mov     qword[param],0
+    mov     qword[param],0;8
     mov     qword[param1],8
     mov     rsi,qword[param]
     mov     rbx,qword[param1]
@@ -525,11 +533,15 @@ calcularExponente1:
     call    putss
 pasarExponenteEnExcesoADecimal1:
     mov     rsi,64
+    mov     qword[param],8;8
     mov     qword[param1],8
     mov     qword[aux2],0
     mov     qword[aux],0
 
     call    pasarBinaADec2
+    mov rcx, numeroFormato
+    mov rdx, qword[aux]
+    call printf
 calculoResta1271:
     cmp     qword[aux],127
     jl      exponentesNegativo1   
@@ -558,8 +570,8 @@ AntesDeLaComa1:
 
     mov     qword[msg], msgRBANC
     call    putss
-
-    mov     rsi,0
+    mov     qword[diferenciaBH],0
+    mov     rsi,qword[diferenciaBH]
     mov     rdx,[vectorResultado+rsi]
 
     cmp     rdx,0
@@ -892,6 +904,7 @@ aConfHexa:
     call    putss
 
     mov     rsi,248
+    mov     qword[param],248
     mov     qword[aux],0
     mov     qword[aux2],0
     mov     qword[aux0],0
@@ -1025,7 +1038,7 @@ ret
 final:
 ret
 pasarBinaADec2:
-    cmp     rsi,qword[param1]
+    cmp     rsi,qword[param]
     jl      final
     mov     rcx, qword[aux2]
     mov     qword[aux0],rcx
