@@ -216,7 +216,7 @@ ret
 esBinario:
     mov  	qword[msg],msgInfoEspacio
 	call 	putss
-
+    mov     qword[diferenciaBH],8
     mov     rsi,0
 ingresoBinario:
     cmp     rsi,256
@@ -234,7 +234,7 @@ ingresoBinario:
 agregarAVector:
     mov     rdi,[opcion]
     mov     [vectorResultado+rsi],rdi
-   ; mov     [vector+rsi],rdi
+    mov     [vector+rsi],rdi
     add     rsi,8
 
     jmp     ingresoBinario
@@ -246,8 +246,11 @@ binarioValido:
 printearNumeros:
     cmp     rsi,256
     jge     calcularExponente
-   
-    call    printGeneral
+    
+    mov     rdx,[vectorResultado+rsi]
+    mov     qword[msg],rdx
+    call    printfNumero
+    add     rsi,8
     jmp     printearNumeros
 calcularExponente:
     mov     qword[msg],msgenter
@@ -256,11 +259,10 @@ pasarExponenteEnExcesoADecimal:
     mov     rsi,64
     mov     qword[param],8
     mov     qword[param1],8
+    mov     qword[aux2],0
+    mov     qword[aux],0
+
     call    pasarBinaADec2
-    mov     rcx,numeroFormato
-    mov     rdx,qword[aux]
-    call    printf
-   ; call    pasarBinaADec2B
 calculoResta127:
     cmp     qword[aux],127
     jl      exponentesNegativo2   
@@ -271,6 +273,8 @@ pasarExponenteABinario:
 reinicioVector:
     cmp     rsi,72
     jge     sigoo
+    mov     qword[vector+rsi],0
+    mov     qword[vectorResultado+rsi],0
     mov     qword[vectorExponente+rsi],0
     add     rsi,8
     jmp     reinicioVector
@@ -286,7 +290,6 @@ sigoo:
     
     mov     qword[msg], msgenter
     call    putss
-    mov     rsi,8
 imprimoResultadoCaso11:
 AntesDeLaComa:
     mov     qword[msg],msgenter
@@ -295,7 +298,7 @@ AntesDeLaComa:
     mov     qword[msg], msgRBANC
     call    putss
 
-  ;  mov     rsi,0
+    mov     rsi,qword[diferenciaBH]
     mov     rdx,[vectorResultado+rsi]
 
     cmp     rdx,0
@@ -305,8 +308,6 @@ AntesDeLaComa:
 laComa:
    mov      qword[msg], msgcoma
    call     printfString
-
- ;  mov      rsi,72
 mantisa:
     cmp     rsi,256
     jge     base
@@ -346,7 +347,12 @@ signoNegativoC:
 signoPositivoC:
     mov     qword[msg],1
     call    printfNumero
-
+    add     rsi,64
+normalizo:
+    add     rsi,8
+    cmp     qword[vectorResultado+rsi],0
+    je      normalizo
+    add     rsi,8
     jmp     laComa
 ;-----------------------------------------------------------;
 ;  configuracion hexadeciaml a notacion cientifica          ;
@@ -509,125 +515,10 @@ ver2H:
     add     rsi,8
     jmp     ver2H
 ret
-exponentesNegativo1:
-    call    exponentesNegativo
-    jmp     pasarExponenteABinario1
-ret
-exponentesCero1:
-    call    exponentesCero
-    jmp     pasarExponenteABinario1
-ret
-exponentesPostivo1:
-    call    exponentesPostivo
-    jmp     pasarExponenteABinario1
-ret
-negativo1:
-    mov     qword[msg],msgNegativo
-    call    printfString
-    jmp     elExponente1
-ret
 endH:
 binarioValido1:
-calcularExponente1:
-    mov     qword[msg], msgenter
-    call    putss
-pasarExponenteEnExcesoADecimal1:
-    mov     rsi,64
-    mov     qword[param],8;8
-    mov     qword[param1],8
-    mov     qword[aux2],0
-    mov     qword[aux],0
-
-    call    pasarBinaADec2
-    mov rcx, numeroFormato
-    mov rdx, qword[aux]
-    call printf
-calculoResta1271:
-    cmp     qword[aux],127
-    jl      exponentesNegativo1   
-    je      exponentesCero1
-    jg      exponentesPostivo1
-pasarExponenteABinario1:
-    mov     rsi,0
-reinicioVector1:
-    cmp     rsi,72
-    jge     sigoo1
-    mov     qword[vectorExponente+rsi],0
-    add     rsi,8
-    jmp     reinicioVector1
-sigoo1:
-    mov     rsi,0
-    mov     rbx,0
-    mov     qword[param],0
-    mov     qword[param1],8
-    mov     rsi,qword[param];56
-    mov     rbx,qword[param1];8
-    call    pasarDecABina2B
-imprimoResultadoCaso111:
-AntesDeLaComa1:
-    mov     qword[msg],msgenter
-    call    putss
-
-    mov     qword[msg], msgRBANC
-    call    putss
-    mov     qword[diferenciaBH],0
-    mov     rsi,qword[diferenciaBH]
-    mov     rdx,[vectorResultado+rsi]
-
-    cmp     rdx,0
-    je      signoPositivoC1
-    cmp     rdx,1
-    je      signoNegativoC1
-laComa1:
-   mov      qword[msg], msgcoma
-   call     printfString
-mantisa1:
-    cmp     rsi,256
-    jge     base1
-    mov     rdx,[vectorResultado+rsi]
-    mov     qword[msg],rdx
-    call    printfNumero
-
-    add     rsi,8
-    jmp     mantisa1
-ret
-base1:
-    mov     qword[msg], msgBase
-    call    printfString
-
-    mov     rsi,8
-    cmp     qword[flagNeg],1
-    je      negativo1
-
-elExponente1:
-    mov     rsi,56
-expo1:
-    cmp     rsi,0
-    jl      final
- 
-    mov     rdx,[vectorExponente+rsi]
-    mov     qword[msg],rdx
-    call    printfNumero
-
-    sub     rsi,8
-    jmp     expo1
-ret
-signoNegativoC1:
-    mov     qword[msg],-1
-    call    printfNumero
-    mov     rsi, 72
-    jmp     laComa1
-signoPositivoC1:
-    mov     qword[msg],1
-    call    printfNumero
-    add     rsi,64
-normalizo:
-    add     rsi,8
-    cmp     qword[vectorResultado+rsi],0
-    je      normalizo
-    add     rsi,8
-    jmp     laComa1  
-ret
+    mov qword[diferenciaBH],0
+    jmp calcularExponente
 traducir:
     cmp     qword[inputNumeros],'A'
     je      esDiez
@@ -904,7 +795,7 @@ aConfHexa:
     call    putss
 
     mov     rsi,248
-    mov     qword[param],248
+    mov     qword[param],0;248
     mov     qword[aux],0
     mov     qword[aux2],0
     mov     qword[aux0],0
