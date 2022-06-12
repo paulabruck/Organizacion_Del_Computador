@@ -262,7 +262,7 @@ pasarExponenteEnExcesoADecimal:
     mov     qword[aux2],0
     mov     qword[aux],0
 
-    call    pasarBinaADec2
+    call    pasarBinaADecVecResul
 calculoResta127:
     cmp     qword[aux],127
     jl      exponentesNegativo2   
@@ -286,7 +286,7 @@ sigoo:
     mov     rsi,qword[param]
     mov     rbx,qword[param1]
 
-    call    pasarDecABina2B
+    call    pasarDecABina
     
     mov     qword[msg], msgenter
     call    putss
@@ -487,7 +487,7 @@ limpio:
     mov     rsi,qword[param]
     mov     rbx,qword[param1]
   ;  call    pasarDecABina2
-    call    pasarDecABina2B
+    call    pasarDecABina
 
     mov     rsi,248
     mov     rbx,0
@@ -688,7 +688,7 @@ printAntesComa:
     cmp     rsi,8
     jge     printComa
 
-    call    printGeneral
+    call    printVec
 
     cmp     qword[vector+rsi],-1
     je      signoNegativo
@@ -704,7 +704,7 @@ printCoef:
     cmp     rsi,192
     jge     printBase
 
-    call    printGeneral
+    call    printVec
     
     mov     rdi,[vector+rsi]
     mov     qword[vectorResultado+rbx],rdi
@@ -720,7 +720,7 @@ printExpo:
     cmp     rsi,qword[aux0]
     jge     visualizar
 
-    call    printGeneral
+    call    printVec
 
     jmp     printExpo
 aConfBinaria:
@@ -731,7 +731,7 @@ calcularExpoExceso:
 ;-----------------------------------------------------------;
 ; Pasar binario a  decimal                                  ;
 ;-----------------------------------------------------------;
-    call    pasarBinaADec
+    call    pasarBinaADecVec
     jmp     expoExceso
 decimalNegativo:
     not     qword[aux]
@@ -741,7 +741,7 @@ ret
 reconvierto:
     not     qword[aux]
     inc     qword[aux]
-    jmp     pasarDecABina
+    jmp     pasarDecABina1
 ret
 expoExceso:
     cmp     qword[flagNeg],1
@@ -755,18 +755,17 @@ limpieza:
     mov     rsi,0
 reinicioVector11:
     cmp     rsi,256
-    jge     pasarDecABina
+    jge     pasarDecABina1
     mov     qword[vectorExponente+rsi],0
     add     rsi,8
     jmp     reinicioVector11
-pasarDecABina:
+pasarDecABina1:
     mov     qword[param],0
     mov     qword[param1],8
     mov     rsi,qword[param]
     mov     rbx,qword[param1]
   
-  ; call    pasarDecABina2
-    call    pasarDecABina2B
+    call    pasarDecABina
     
     mov     rsi,56
     mov     rbx,8
@@ -797,46 +796,45 @@ aConfHexa:
     call    putss
 
     mov     rsi,248
-    mov     qword[param],0;248
+    mov     qword[param],0
     mov     qword[aux],0
     mov     qword[aux2],0
     mov     qword[aux0],0
 c:    
-    call    pasarBinaADec2
+    call    pasarBinaADecVecResul
 pasarDeciAHexa:
     mov     qword[aux2],16 
     mov     rsi,0
     mov     rbx,4
-divido1:    
+dividoDeci:    
     cmp     qword[aux],16
-    jl      termine1
+    jl      conviertoCocienteFinal
 
-    mov     rax,qword[aux] ;lo q voy a dividir 
+    mov     rax,qword[aux] 
     sub     rdx,rdx
-    idiv    qword[aux2] ; divido por 2 
+    idiv    qword[aux2] 
     inc     qword[contador]
 
     mov     qword[aux],rax
-    mov     rdx,rdx;qword[aux0]
+    mov     rdx,rdx
     mov     rdi,rdx
     call    convertir
-agregoo:
+
     mov     [vector+rsi],rdi
     add     rsi,4
-    jmp     divido1
-termine1:
+    jmp     dividoDeci
+conviertoCocienteFinal:
     mov     rdi,qword[aux]
-    call    convertir
-sigo:  
+    call    convertir 
     mov     [vector+rsi],rdi
     add     rsi,4
     mov     rsi,27
     mov     rbx,4
-aver1:
+imprimoMensajeRNCHexa:
     mov     rsi,36
     mov     qword[msg], msgRNCHexa
     call    putss
-ver21:
+imprimoVectorEnHexa:
     cmp     rsi,0
     jl      final
 
@@ -846,7 +844,7 @@ ver21:
     call    printf
     sub     rsp,32
     sub     rsi,4
-    jmp     ver21
+    jmp     imprimoVectorEnHexa
 ret
 convertir:
     cmp     rdi,10
@@ -863,27 +861,27 @@ convertir:
     je      esF
 
     add     rdi,48
-vuelvo:
+retorno:
 ret
 esA:
     mov     rdi,'A'
-    jmp     vuelvo
+    jmp     retorno
 esB:
     mov     rdi,'B'
-    jmp     vuelvo
+    jmp     retorno
 esC:
     mov     rdi,'C'
-    jmp     vuelvo
+    jmp     retorno
 esD:
     mov     rdi,'D'
-    jmp     vuelvo
+    jmp     retorno
 esE:
     mov     rdi,'E'
-    jmp     vuelvo
+    jmp     retorno
 esF:
     mov     rdi,'F'
-    jmp     vuelvo
-printGeneral:
+    jmp     retorno
+printVec:
     mov     rdx,[vector+rsi]
     mov     qword[msg],rdx
     call    printfNumero
@@ -895,98 +893,88 @@ rellenarVector:
 
     add     rsi,qword[aux]
 ret
-final:
-ret
-pasarBinaADec2:
+pasarBinaADecVecResul:
     cmp     rsi,qword[param]
     jl      final
     mov     rcx, qword[aux2]
     mov     qword[aux0],rcx
 
     cmp     qword[vectorResultado+rsi],0
-    je      avanzo2
+    je      avanzoVecResul
     cmp     qword[vectorResultado+rsi],1
-    je      cont2
-cont2:
+    je      continuoVecResul
+continuoVecResul:
     cmp     qword[aux2],0
-    je      elevadoA02
+    je      elevadoA0VecResul
     cmp     qword[aux2],1
-    je      elevadoA12
+    je      elevadoA1VecResul
 
     mov     r8,2
     mov     r9,2
-    jmp     potencia2
-elevadoA02:
+    call    potencia
+    jmp     avanzoVecResul
+elevadoA0VecResul:
     inc     qword[aux]
-    jmp     avanzo2
-elevadoA12:
+    jmp     avanzoVecResul
+elevadoA1VecResul:
     add     qword[aux],2
-    jmp     avanzo2
-potencia2:
-    imul    r8,r9
-    dec     qword[aux2]
-
-    cmp     qword[aux2],1
-    jne     potencia2
-
-    add     qword[aux],r8
-avanzo2:   
+    jmp     avanzoVecResul
+avanzoVecResul:   
     mov     rcx, qword[aux0]
     mov     qword[aux2],rcx
     
     add     qword[aux2],1
-sig2:    
     sub     rsi,  qword[param1]
-    jmp     pasarBinaADec2
+    jmp     pasarBinaADecVecResul
 ret   
-pasarBinaADec:
+potencia:
+    imul    r8,r9
+    dec     qword[aux2]
+
+    cmp     qword[aux2],1
+    jne     potencia
+
+    add     qword[aux],r8
+ret
+pasarBinaADecVec:
     cmp     rsi,184    
     jle     final
     
-    mov rcx, qword[aux2]
-    mov qword[aux0],rcx
-    cmp qword[vector+rsi],0
-    je  avanzo
-    cmp qword[vector+rsi],1
-    je  cont
-cont:
-    cmp qword[aux2],0
-    je  elevadoA0
-    cmp qword[aux2],1
-    je  elevadoA1
-    mov r8,2
-    mov r9,2
-    jmp potencia
-elevadoA0:
-    inc qword[aux]
-    jmp avanzo
-ret
-elevadoA1:
-    add qword[aux],2
-    jmp avanzo
-ret   
-potencia:
-    imul r8,r9
-    dec qword[aux2]
-    cmp qword[aux2],1
-    jne  potencia
-    add qword[aux],r8
-    
-avanzo:   
-    mov rcx, qword[aux0]
-    mov qword[aux2],rcx
-    add qword[aux2],1
- 
-sig:    
-    sub rsi,8
-    jmp pasarBinaADec
-    
+    mov     rcx, qword[aux2]
+    mov     qword[aux0],rcx
+
+    cmp     qword[vector+rsi],0
+    je      avanzoVec
+    cmp     qword[vector+rsi],1
+    je      continuoVec
+continuoVec:
+    cmp     qword[aux2],0
+    je      elevadoA0Vec
+    cmp     qword[aux2],1
+    je      elevadoA1Vec
+
+    mov     r8,2
+    mov     r9,2
+    call    potencia
+    jmp     avanzoVec
+elevadoA0Vec:
+    inc     qword[aux]
+    jmp     avanzoVec
+elevadoA1Vec:
+    add     qword[aux],2
+    jmp     avanzoVec   
+avanzoVec:   
+    mov     rcx, qword[aux0]
+    mov     qword[aux2],rcx
+    add     qword[aux2],1
+    sub     rsi,8    
+    jmp     pasarBinaADecVec
 ret  
-pasarDecABina2B:
+pasarDecABina:
     mov     qword[aux2],2
-divido2B:    
+divido:    
     cmp     qword[aux],2
-    jl      termine2B
+    jl      agregoCocienteFinal
 
     mov     rax,qword[aux] ;lo q voy a dividir 
     sub     rdx,rdx
@@ -1000,8 +988,8 @@ divido2B:
     mov     [vectorExponente+rsi],rdi ; agregar a vector
     add     rsi,8
 
-    jmp     divido2B
-termine2B:
+    jmp     divido
+agregoCocienteFinal:
     mov     rdi,qword[aux]
     mov     [vectorExponente+rsi],rdi ; agrego ultimo pedazo a vector 
     add     rsi,8
@@ -1054,4 +1042,6 @@ ret
 exponentesPostivo:
     sub     qword[aux],127
     mov     qword[flagNeg],0
+ret
+final:
 ret
