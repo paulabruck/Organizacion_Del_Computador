@@ -49,7 +49,7 @@ section .data
     vectorResultado             times 32 dq 1
     vectorAux                   times 32 dq 1
     vectorNuevo                 times 32 dq 1
-    vectorExponente             times 8  dq 1
+    vectorExponente             times 32  dq 1
  
 section .bss
     opcionIngresada     resb 1
@@ -486,7 +486,8 @@ limpio:
     mov     qword[param1],8
     mov     rsi,qword[param]
     mov     rbx,qword[param1]
-    call    pasarDecABina2
+  ;  call    pasarDecABina2
+    call    pasarDecABina2B
 
     mov     rsi,248
     mov     rbx,0
@@ -495,7 +496,7 @@ verH:
     jl      averH
 
     mov     rcx,numeroFormato
-    mov     rdx,[vector+rsi]
+    mov     rdx,[vectorExponente+rsi]
     mov     [vectorResultado+rbx],rdx
     add     rbx,8
     sub     rsi,8
@@ -661,6 +662,7 @@ ret
 agregarNCAVector:
     mov     rdi,[opcion]
     mov     [vector+rsi],rdi
+
     add     rsi,8
 ret   
 signoNegativo:
@@ -678,10 +680,8 @@ signoPositivo:
     jmp     printComa
 ret
 printNCienti:
-    mov     rcx, msgNotCien
-    add     rsp,32
-    call    printf ;falta
-    sub     rsp,32
+    mov     qword[msg], msgNotCien
+    call    printfString ;falta
 
     mov     rsi,0
 printAntesComa:
@@ -756,7 +756,7 @@ limpieza:
 reinicioVector11:
     cmp     rsi,256
     jge     pasarDecABina
-    mov     qword[vector+rsi],0
+    mov     qword[vectorExponente+rsi],0
     add     rsi,8
     jmp     reinicioVector11
 pasarDecABina:
@@ -765,14 +765,15 @@ pasarDecABina:
     mov     rsi,qword[param]
     mov     rbx,qword[param1]
   
-    call    pasarDecABina2
+  ; call    pasarDecABina2
+    call    pasarDecABina2B
     
     mov     rsi,56
     mov     rbx,8
 ver:
     cmp     rsi, 0
     jl      aver
-    mov     rdx,[vector+rsi]
+    mov     rdx,[vectorExponente+rsi]
     mov     [vectorResultado+rbx],rdx
     add     rbx,8
     sub     rsi,8
@@ -981,29 +982,6 @@ sig:
     jmp pasarBinaADec
     
 ret  
-pasarDecABina2:
-    mov     qword[aux2],2
-divido2:    
-    cmp     qword[aux],2
-    jl      termine2
-
-    mov     rax,qword[aux] ;lo q voy a dividir 
-    sub     rdx,rdx
-    idiv    qword[aux2] ; divido por 2 
-
-    inc     qword[contador]
-
-    mov     qword[aux],rax
-    mov     rdi,rdx
-    mov     [vector+rsi],rdi ; agregar a vector
-    add     rsi,8
-
-    jmp     divido2
-termine2:
-    mov     rdi,qword[aux]
-    mov     [vector+rsi],rdi ; agrego ultimo pedazo a vector 
-    add     rsi,8
-ret
 pasarDecABina2B:
     mov     qword[aux2],2
 divido2B:    
