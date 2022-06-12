@@ -489,12 +489,7 @@ vectoreslimpios:
 swapVecExpoAVecResul:
     cmp     rsi, 0
     jl      imprimomsgRNCBin
-
-    mov     rcx,numeroFormato
-    mov     rdx,[vectorExponente+rsi]
-    mov     [vectorResultado+rbx],rdx
-    add     rbx,8
-    sub     rsi,8
+    call    swap
     jmp     swapVecExpoAVecResul
 ret
 imprimomsgRNCBin:
@@ -502,15 +497,8 @@ imprimomsgRNCBin:
     mov     rcx, msgRNCBin
     call    puts
 imprimoVecResul:
-    cmp     rsi, 256
-    jge     binarioObtenido
-    
-    mov     rdx,[vectorResultado+rsi]
-    mov     qword[msg],rdx
-    call    printfNumero
-    add     rsi,8
-    jmp     imprimoVecResul
-
+    call    imprimoVectorResultado
+    jmp     binarioObtenido
 binarioObtenido:
     mov     qword[diferenciaBH],0
     jmp     calcularExponente
@@ -763,23 +751,15 @@ pasarDecimalABinario:
 swapVecExpoAVecResultado:
     cmp     rsi, 0
     jl      imprimomsgRNCbin1
-    mov     rdx,[vectorExponente+rsi]
-    mov     [vectorResultado+rbx],rdx
-    add     rbx,8
-    sub     rsi,8
+    call    swap
     jmp     swapVecExpoAVecResultado
 imprimomsgRNCbin1:
     mov     rsi,0
     mov     qword[msg], msgRNCBin
     call    putss
 imprimoVecResul1:
-    cmp     rsi, 256
-    jge     final
-    mov     rdx,[vectorResultado+rsi]
-    mov     qword[msg],rdx
-    call    printfNumero
-    add     rsi,8
-    jmp     imprimoVecResul1
+   call     imprimoVectorResultado
+   jmp      final
 ;-----------------------------------------------------------;
 ;Subopcion2:pasarnotacioncientificaaconfiguracionHexadecimal;
 ;-----------------------------------------------------------;
@@ -1048,6 +1028,22 @@ ret
 exponentesPostivo:
     sub     qword[aux],127
     mov     qword[flagNeg],0
+ret
+swap:
+    mov     rdx,[vectorExponente+rsi]
+    mov     [vectorResultado+rbx],rdx
+    add     rbx,8
+    sub     rsi,8
+ret
+imprimoVectorResultado:
+    cmp     rsi, 256
+    jge     final
+    
+    mov     rdx,[vectorResultado+rsi]
+    mov     qword[msg],rdx
+    call    printfNumero
+    add     rsi,8
+    jmp imprimoVectorResultado
 ret
 final:
 ret
