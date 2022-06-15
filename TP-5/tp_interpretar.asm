@@ -313,20 +313,20 @@ AntesDeLaComa:
     mov     qword[msg], msgRBANC
     call    putss
 
-   ; mov     rsi,qword[diferenciaBH]
+    mov     rsi,qword[diferenciaBH]
   ;  mov     rdx,[vectorExponente+rsi]
 
     cmp     qword[niego],1
     je      signoNegativoBinario
-
+    cmp     qword[niego],0
    ; cmp     rdx,0
-    jne      signoPositivoBinario
+    je      signoPositivoBinario
    ; cmp     rdx,1
     ;je      signoNegativoBinario
 laComa:
    mov      qword[msg], msgcoma
    call     printfString
-   mov      rsi,72
+   ;mov      rsi,72
 mantisa:
     cmp     rsi,256
     jge     base
@@ -367,11 +367,12 @@ ret
 signoNegativoBinario:
     mov     qword[msg],-1
     call    printfNumero
-
+    mov     rsi,72
     jmp     laComa
 signoPositivoBinario:
     mov     qword[msg],1
     call    printfNumero
+   
     add     rsi,64
 normalizo:
     add     rsi,8
@@ -824,25 +825,7 @@ imprimomsgRNCbin1:
     mov     qword[msg], msgRNCBin
     call    putss
 imprimoVecResul1:
-    cmp     rsi, 72;256
-    jge     imprimoDeVectorHelp
-    
-    mov     rdx,[vectorResultado+rsi]
-    mov     qword[msg],rdx
-    call    printfNumero
-    add     rsi,8
-    jmp     imprimoVecResul1
-imprimoDeVectorHelp:
-    mov     rsi,64
-voy:
-    cmp     rsi,248
-    je      final
-    mov     rdx,[vectorHelp+rsi]
-    mov     qword[msg],rdx
-    call    printfNumero
-    add     rsi,8     
-;   call     imprimoVectorResultado
-    jmp     voy
+   call     imprimoVectorResultado
    jmp      final
 ;-----------------------------------------------------------;
 ;Subopcion2:pasarnotacioncientificaaconfiguracionHexadecimal;
