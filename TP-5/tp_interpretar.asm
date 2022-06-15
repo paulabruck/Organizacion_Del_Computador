@@ -35,6 +35,7 @@ section .data
     msgNegativo                 db  "-",0
     msgIngSignoExpo             db  "~~Ingrese signo del exponente(+ ---> Positivo | - ---> Negativo) : ",0
     msgIngCantDigit             db  "~~Ingrese cantidad de digitos que posee el exponente : ",0
+    msgIngSignoCoef             db  "~~Ingrese el signo de la parte entera de la notacion cientifica (+ ---> Positivo | - ---> Negativo) :  ",0
     contador                    dq  0
     aux0                        dq  0
     aux                         dq  0
@@ -44,6 +45,8 @@ section .data
     msg                         dq  0
     flagNeg                     dq  0
     diferenciaBH                dq  0
+    niego                       dq  0
+    flag                        dq  0
     vector                      times 32 dq 1
     vectorResultado             times 32 dq 1
     vectorAux                   times 32 dq 1
@@ -245,6 +248,12 @@ binarioValido:
 
     mov		qword[msg],msgnumBina
 	call	printfString	
+    
+    cmp     qword[vectorResultado+rsi],1
+    je      aNegar
+    jne     aPositivo
+seguimos:
+    mov     rsi,0
 printearNumeros:
     cmp     rsi,256
     jge     calcularExponente
@@ -303,16 +312,20 @@ AntesDeLaComa:
     mov     qword[msg], msgRBANC
     call    putss
 
-    mov     rsi,qword[diferenciaBH]
-    mov     rdx,[vectorResultado+rsi]
+   ; mov     rsi,qword[diferenciaBH]
+  ;  mov     rdx,[vectorExponente+rsi]
 
-    cmp     rdx,0
-    je      signoPositivoBinario
-    cmp     rdx,1
+    cmp     qword[niego],1
     je      signoNegativoBinario
+
+   ; cmp     rdx,0
+    jne      signoPositivoBinario
+   ; cmp     rdx,1
+    ;je      signoNegativoBinario
 laComa:
    mov      qword[msg], msgcoma
    call     printfString
+   mov      rsi,72
 mantisa:
     cmp     rsi,256
     jge     base
@@ -324,6 +337,12 @@ mantisa:
     add     rsi,8
     jmp     mantisa
 ret
+aNegar:
+    mov     qword[niego],1
+    jmp     seguimos
+aPositivo:
+    mov     qword[niego],0
+    jmp     seguimos
 base:
     mov     qword[msg], msgBase
     call    printfString
@@ -492,7 +511,19 @@ swapVecExpoAVecResul:
     call    swap
     jmp     swapVecExpoAVecResul
 ret
+nego:
+    mov     qword[niego],1
+    jmp     imprimoBina
+ret
+noniego:
+    mov     qword[niego],0
+    jmp     imprimoBina
 imprimomsgRNCBin:
+    mov     rsi,0
+    cmp     qword[vectorResultado+rsi],1
+    je      nego
+    jne     noniego
+imprimoBina:
     mov     rsi,0
     mov     rcx, msgRNCBin
     call    puts
@@ -554,6 +585,21 @@ accion2:
     mov     rsi,0
     mov  	qword[msg],msgSubOpcion2
 	call 	putss
+ingresarSignoParteEntera:
+    mov  	qword[msg],msgIngSignoCoef
+	call 	printfString
+
+    mov     qword[msg],opcionIngresada
+    call    getss
+
+    cmp     qword[opcionIngresada],'-'
+    je      parteEnteraNeg
+
+    cmp     qword[opcionIngresada],'+'
+    je      parteENteraPosi
+
+    jmp     errorIngresoOpcion
+
 ingresarCoeficiente:
     cmp     rsi,192
     jge     ingresarSignoExponente
@@ -641,6 +687,12 @@ elegirConf:
     cmp     word[opcion],2
     je      aConfHexa
 ret
+parteEnteraNeg:
+    mov     qword[flag],1
+    jmp     ingresarCoeficiente
+parteENteraPosi:
+    mov     qword[flag],0
+    jmp     ingresarCoeficiente
 agregarNCAVector:
     mov     rdi,[opcion]
     mov     [vector+rsi],rdi
@@ -651,16 +703,23 @@ signoNegativo:
     mov     rsi,0
     mov     rdi,1
     mov     [vectorResultado+rsi],rdi
+
+    mov     qword[msg],msgNegativo
+    call    printfString
  
-    jmp     printComa
+    jmp     casi
 ret
 signoPositivo:
     mov     rsi,0
     mov     rdi,0
     mov     [vectorResultado+rsi],rdi
  
-    jmp     printComa
+    jmp     casi
 ret
+printMenos:
+    mov     qword[msg],msgNegativo
+    call    printfString
+    jmp     impreso
 printNCienti:
     mov     qword[msg], msgNotCien
     call    printfString 
@@ -670,12 +729,14 @@ printAntesComa:
     cmp     rsi,8
     jge     printComa
 
-    call    printVec
+    
 
-    cmp     qword[vector+rsi],-1
+    cmp     qword[flag],1
     je      signoNegativo
-    cmp     qword[vector+rsi],1
+    cmp     qword[flag],0
     je      signoPositivo
+casi:
+    call    printVec
 printComa:
     mov     qword[msg], msgcoma
     call    printfString
@@ -697,6 +758,9 @@ printBase:
     mov     qword[msg], msgBase
     call    printfString
     
+    cmp     qword[flagNeg],1
+    je      printMenos
+impreso:
     mov     rsi,192
 printExpo:
     cmp     rsi,qword[aux0]
