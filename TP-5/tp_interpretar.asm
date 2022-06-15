@@ -52,6 +52,7 @@ section .data
     vectorAux                   times 32 dq 1
     vectorNuevo                 times 32 dq 1
     vectorExponente             times 32 dq 1
+    vectorHelp                  times 32 dq 1
  
 section .bss
     opcionIngresada     resb 1
@@ -747,12 +748,13 @@ printCoef:
     cmp     rsi,192
     jge     printBase
 
-    call    printVec
+    
     
     mov     rdi,[vector+rsi]
     mov     qword[vectorResultado+rbx],rdi
+    mov     qword[vectorHelp+rbx],rdi
     add     rbx,8
-
+    call    printVec
     jmp     printCoef
 printBase:
     mov     qword[msg], msgBase
@@ -822,7 +824,25 @@ imprimomsgRNCbin1:
     mov     qword[msg], msgRNCBin
     call    putss
 imprimoVecResul1:
-   call     imprimoVectorResultado
+    cmp     rsi, 72;256
+    jge     imprimoDeVectorHelp
+    
+    mov     rdx,[vectorResultado+rsi]
+    mov     qword[msg],rdx
+    call    printfNumero
+    add     rsi,8
+    jmp     imprimoVecResul1
+imprimoDeVectorHelp:
+    mov     rsi,64
+voy:
+    cmp     rsi,248
+    je      final
+    mov     rdx,[vectorHelp+rsi]
+    mov     qword[msg],rdx
+    call    printfNumero
+    add     rsi,8     
+;   call     imprimoVectorResultado
+    jmp     voy
    jmp      final
 ;-----------------------------------------------------------;
 ;Subopcion2:pasarnotacioncientificaaconfiguracionHexadecimal;
@@ -925,6 +945,7 @@ printVec:
     mov     rdx,[vector+rsi]
     mov     qword[msg],rdx
     call    printfNumero
+  
     add     rsi,8
 ret
 rellenarVector:
