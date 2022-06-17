@@ -47,12 +47,12 @@ section .data
     diferenciaBH                dq  0
     niego                       dq  0
     flag                        dq  0
+    variable                    dq  0
     vector                      times 32 dq 1
     vectorResultado             times 32 dq 1
     vectorAux                   times 32 dq 1
     vectorNuevo                 times 32 dq 1
     vectorExponente             times 32 dq 1
-    vectorHelp                  times 32 dq 1
  
 section .bss
     opcionIngresada     resb 1
@@ -246,7 +246,6 @@ agregarAVector:
     jmp     ingresoBinario
 binarioValido:
     mov     rsi,0
-
     mov		qword[msg],msgnumBina
 	call	printfString	
     
@@ -314,19 +313,13 @@ AntesDeLaComa:
     call    putss
 
     mov     rsi,qword[diferenciaBH]
-  ;  mov     rdx,[vectorExponente+rsi]
-
     cmp     qword[niego],1
     je      signoNegativoBinario
     cmp     qword[niego],0
-   ; cmp     rdx,0
     je      signoPositivoBinario
-   ; cmp     rdx,1
-    ;je      signoNegativoBinario
 laComa:
    mov      qword[msg], msgcoma
    call     printfString
-   ;mov      rsi,72
 mantisa:
     cmp     rsi,256
     jge     base
@@ -372,13 +365,7 @@ signoNegativoBinario:
 signoPositivoBinario:
     mov     qword[msg],1
     call    printfNumero
-   
-    add     rsi,64
-normalizo:
-    add     rsi,8
-    cmp     qword[vectorResultado+rsi],0
-    je      normalizo
-    add     rsi,8
+    mov     rsi,72
     jmp     laComa
 ;-----------------------------------------------------------;
 ;Subopcion2:configuracion hexadeciaml a notacion cientifica ;
@@ -731,8 +718,6 @@ printAntesComa:
     cmp     rsi,8
     jge     printComa
 
-    
-
     cmp     qword[flag],1
     je      signoNegativo
     cmp     qword[flag],0
@@ -749,11 +734,8 @@ printCoef:
     cmp     rsi,192
     jge     printBase
 
-    
-    
     mov     rdi,[vector+rsi]
     mov     qword[vectorResultado+rbx],rdi
-    mov     qword[vectorHelp+rbx],rdi
     add     rbx,8
     call    printVec
     jmp     printCoef
