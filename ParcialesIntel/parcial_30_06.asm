@@ -72,7 +72,7 @@ section  		.data
 
     matriz      times 300   db " "
     vecFila                 db "010203040506070809101112131415161718192021222324252627282930",0
-    vecSentido              db  "ABDI",0
+    vecSentido              db "ABDI",0
     msgInvalido             db "Error en un dato",0
 
 section  		.bss
@@ -92,6 +92,7 @@ main:
 	jle		errorOpen
 
     call    leerArchivo
+    call    mostrar
 ret
 
 abrirArchivo:                       ;Abro archivo para lectura
@@ -186,8 +187,66 @@ validarColumna:
     jl      esInvalido
     cmp     byte[columna],10
     jg      esInvalido
+validarQueQuepa:
+    sub		byte[columna],1				;Resto a [columna] 1 para hacer el desplaz. columnas
+    mov		al,byte[columna]
+
+    mov		bl,1
+    mul     bl
+
+    mov		rdx,rax
+
+    sub		byte[filaBin],1
+    mov		al,byte[filaBin]
+
+    mov		bl,10
+    mul     bl
+
+    add		rax,rdx           
+
+    cmp     byte[sentidoBin],1
+    je      verificarArriba
+
+    cmp     byte[sentidoBin],2
+    je      verificarAbajo   
+
+    cmp     byte[sentidoBin],3
+    je      verificarDerecha
+
+    cmp     byte[sentidoBin],4
+    je      verificarIzquierda
+
+validado:
 
 ret
+verificarArriba:
+    sub     rax,40
+    cmp     rax,0
+    jl      esInvalido
+    cmp     rax,300
+    jg      esInvalido
+    jmp     validado
+verificarAbajo:
+    add     rax,40
+    cmp     rax,0
+    jl      esInvalido
+    cmp     rax,300
+    jg      esInvalido
+    jmp     validado
+verificarDerecha:
+    add     rax,4
+    cmp     rax,0
+    jl      esInvalido
+    cmp     rax,300
+    jg      esInvalido
+    jmp     validado
+verificarIzquierda:
+    sub     rax,4
+    cmp     rax,0
+    jl      esInvalido
+    cmp     rax,300
+    jg      esInvalido
+    jmp     validado
 esInvalido:
     mov     rcx,msgInvalido
     add     rsp, 32
@@ -234,17 +293,13 @@ ret
 haciaArriba:    
     mov     qword[aux],rax
     sub     rax,40 ;posicion inicial para ir para abajo
-    cmp     rax,0
-    jl      esInvalido
-    cmp     rax,300
-    jg      esInvalido
     mov     qword[contador],0
     
 arriba:
     cmp     qword[contador],4
     je      actualizado  
     mov     bx,'*'
-    mov		word[matriz + rax],bx
+    mov		byte[matriz + rax],bx
 
     add     rax,10
     inc     qword[contador]    
@@ -255,7 +310,7 @@ abajo:
     cmp     qword[contador],4
     je      actualizado  
     mov     bx,'*'
-    mov		word[matriz + rax],bx
+    mov		byte[matriz + rax],bx
 
     add     rax,10
     inc     qword[contador]    
@@ -267,7 +322,7 @@ derecha:
     cmp     qword[contador],4
     je      actualizado  
     mov     bx,'*'
-    mov		word[matriz + rax],bx
+    mov		byte[matriz + rax],bx
 
     add     rax,1
     inc     qword[contador]    
@@ -281,10 +336,46 @@ izquierda:
     cmp     qword[contador],4
     je      actualizado  
     mov     bx,'*'
-    mov		word[matriz + rax],bx
+    mov		byte[matriz + rax],bx
 
     add     rax,1
     inc     qword[contador]    
     jmp     izquierda
+mostrar:
+    mov     rax,0
+    mov     qword[contadorC],0
+    mov     qword[contadorF],0
+recorroXColumnas:
+    cmp     qword[contadorF],29
+    je      columnaEs
+    cmp     byte[matriz+rax],"*"
+    jne     proximaColumna
+    add     rax,10
+    inc     qword[contadorF]
+    jmp     recorroXColumnas
+proximaColumna:
+    cmp     qword[contadorC],9
+    je      endProg
+    mov     rax,qword[contadorC]
+    inc     rax
+    mov     qword[contadorF],0
+    inc     qword[contadorC]
+    jmp     recorroXColumnas
+columnaEs:
+    mov		rcx,msgColumna		;Parametro 1: direccion del mensaje a imprimir
+	sub		rsp,32
+	call	puts
+	add		rsp,32
+
+    inc     qword[contadorC]
+    mov		rcx,qword[contadorC]		;Parametro 1: direccion del mensaje a imprimir
+	sub		rsp,32
+	call	puts
+	add		rsp,32
+    dec     qword[contadorC]
+
+    jmp     proximaColumna
+
+
 endProg:	
 ret
