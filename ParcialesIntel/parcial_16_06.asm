@@ -132,7 +132,6 @@ evaluarPiso:
     je      esInvalido
 
     inc     rax
-    mov     rcx,2 ; 2 bytes por piso en el vector 
 
     lea		rsi,[piso]
     lea     rdi,[vecPisos + rbx]
