@@ -376,6 +376,5 @@ columnaEs:
 
     jmp     proximaColumna
 
-
 endProg:	
 ret
