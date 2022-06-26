@@ -220,32 +220,36 @@ validado:
 
 ret
 verificarArriba:
-    sub     rax,40
-    cmp     rax,0
+    sub     byte[filaBin],3
+    cmp     byte[filaBin],1
     jl      esInvalido
-    cmp     rax,300
+    cmp     byte[filaBin],30
     jg      esInvalido
+    add     byte[filaBin],3
     jmp     validado
 verificarAbajo:
-    add     rax,40
-    cmp     rax,0
+    add     byte[filaBin],3
+    cmp     byte[filaBin],1
     jl      esInvalido
-    cmp     rax,300
+    cmp     byte[filaBin],30
     jg      esInvalido
+    sub     byte[filaBin],3
     jmp     validado
 verificarDerecha:
-    add     rax,4
-    cmp     rax,0
+    add     byte[columna],3
+    cmp     byte[columna],1
     jl      esInvalido
-    cmp     rax,300
+    cmp     byte[columa],10
     jg      esInvalido
+    sub     byte[columna],3
     jmp     validado
 verificarIzquierda:
-    sub     rax,4
-    cmp     rax,0
+    sub     byte[columna],3
+    cmp     byte[columna],1
     jl      esInvalido
-    cmp     rax,300
+    cmp     byte[columa],10
     jg      esInvalido
+    add     byte[columna],3
     jmp     validado
 esInvalido:
     mov     rcx,msgInvalido
