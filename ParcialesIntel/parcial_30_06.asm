@@ -296,11 +296,11 @@ actualizado:
 ret
 haciaArriba:    
     mov     qword[aux],rax
-    sub     rax,40 ;posicion inicial para ir para abajo
+    sub     rax,30 ;posicion inicial para ir para abajo
     mov     qword[contador],0
     
 arriba:
-    cmp     qword[contador],4
+    cmp     qword[contador],3
     je      actualizado  
     mov     bx,'*'
     mov		byte[matriz + rax],bx
@@ -311,7 +311,7 @@ arriba:
 haciaBajo:
     mov     qword[contador],0
 abajo:
-    cmp     qword[contador],4
+    cmp     qword[contador],3
     je      actualizado  
     mov     bx,'*'
     mov		byte[matriz + rax],bx
@@ -323,7 +323,7 @@ abajo:
 haciaDerecha:
     mov     qword[contador],0
 derecha:
-    cmp     qword[contador],4
+    cmp     qword[contador],3
     je      actualizado  
     mov     bx,'*'
     mov		byte[matriz + rax],bx
@@ -337,7 +337,7 @@ haciaIzquierda:
     sub     rax,4 ;posicion inicial para ir para abajo
     
 izquierda:
-    cmp     qword[contador],4
+    cmp     qword[contador],3
     je      actualizado  
     mov     bx,'*'
     mov		byte[matriz + rax],bx
