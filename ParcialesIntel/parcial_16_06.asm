@@ -280,3 +280,372 @@ continuo:
 ret
 fin:
 ret
+
+;-------------------VERSION QUE COMPILA -----------------------------------------------;
+/*
+; Se dispone de una matriz de 12x12 que representa un edificio nuevo a estrenar, donde
+; tiene 12 pisos con 12 departamentos en cada uno. Cada elemento de la matriz es un
+; binario de 4 bytes, donde guarda el precio de venta en U$S de cada departamento. Se
+; dispone de un archivo (PRECIOS.DAT) que contiene los precios de los departamentos,
+; donde cada registro del archivo contiene los siguientes campos: 
+; - Piso: Carácter de 2 bytes 
+; - Departamento:  Binario de 1 byte  
+; - Precio venta: Binario de 4 bytes
+; Se pide realizar un programa en assembler Intel 80x86 que realice la carga de la matriz
+; a través del archivo. Como la información del archivo puede ser incorrecta se deberá
+; validar haciendo uso de una rutina interna (VALREG) que descartará los registros
+; inválidos (la rutina deberá validar todos los campos del registro).
+; Una vez finalizada la carga, se solicitará ingresar por teclado numero (x) y un precio de
+; venta (no se requieren validar) y se deberá mostrar todos los departamentos/pisos cuyo
+; precio de venta sea menor al ingresado.
+; Para alumnos con padrón par, x será un numero de piso y se deberá mostrar por
+; pantalla todos los nros de departamento cuyo precio sea inferior al ingresado en el piso
+; ingresado.
+; Para alumnos con padrón impar, x será un numero de departamento y se deberá
+; mostrar por pantalla todos los nros de piso donde el departamento ingresado tenga
+; precio inferior al ingresado.
+
+
+global main
+extern puts
+extern printf
+extern sscanf
+extern gets
+extern fopen
+extern fclose
+extern fread
+
+section .data
+    ; Datos archivo
+    nombreArchivo   db  "PRECIOS.DAT", 0
+    modo            db  "rb", 0
+    msjErrorAbrir   db  "Error en la apertura del archivo Precios", 0  
+
+    ; Datos registro
+    registro        times 0     db ""
+    piso            times 2     db " "
+    departamento                db 0
+    precio          times 4     db 0
+
+    ; Datos matriz
+    matriz          times 144   dd 0
+
+    pisoStr         db  "**", 0
+    pisoFormat      db  "%hi", 0
+    deptoFormat     db  "%hi", 0
+    precioFormat    db  "%li", 0
+    pisoNum         db  0
+    desplaz         db  0
+    contadorFila    db  0
+    contadorCol     db  0
+    msjErrorPiso    db  "Es invalido", 10, 0
+    msjBienPiso     db  "El piso es: %hi", 10, 0
+    msjBienDepto    db  "El depto es: %hi", 10, 0
+    msjBienPrecio   db  "El precio es: %i", 10, 0
+    msjPedirDep     db  "Ingrese un numero de departamento: ", 10, 0
+    msjPedirPrecio  db  "Ingrese un precio de venta: ", 10, 0
+    msjPisos        db  "El piso %hi tiene un precio inferior al ingresado en el departamento ingresado", 10, 0
+
+    msjPrecioEs     db  "El precio ingresado es: %i", 10, 0
+    msjDeptoEs      db  "El depto ingresado es: %hi", 10, 0
+    pisoBien        db  "Fila: %hi", 10, 0
+    deptoBien       db  "Columna: %hi", 10, 0
+    filaBien        db  "La fila ahora es %hi", 10, 0
+
+    msjOk           db  "Todo bien", 10, 0
+    msjCheckeando   db  "Ingrese %hi en la matriz en el lugar %hi", 10, 0
+    msjAver         db  "Aca tengo %hi", 10, 0
+    deplazFila      db  "Desplazamiento fila: %hi", 10, 0
+    desplazCol      db  "Desplazamiento columna: %hi", 10, 0
+
+section .bss
+    handleArchivo       resq    1
+    esValido            resb    1
+    deptoIngresado      resw    1
+    precioIngresado     resb    4
+    bufferDep           resb    100
+    bufferPrecio        resb    100
+
+section .text
+main:
+    call    abrirArchivo
+
+    cmp     qword[handleArchivo],0				;Error en apertura?
+	jle		errorAbrirArchivo
+
+    call    leerArchivo
+    call    solicitar
+
+    mov		rcx,msjOk		;Parametro 1: direccion del mensaje a imprimir
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+
+finalPrograma:
+    ret
+
+errorAbrirArchivo:
+    mov     rcx, msjErrorAbrir
+    sub     rsp, 32
+    call    puts
+    add		rsp, 32
+
+    jmp     finalPrograma
+
+abrirArchivo:
+    mov     rcx, nombreArchivo                  ; Parametro 1: direccion del archivo
+    mov     rdx, modo                           ; Parametro 2: modo de apertura
+    sub		rsp, 32
+	call	fopen                               ; Abro el archivo y dejo el handle en el rax
+	add		rsp, 32
+
+    cmp     rax, 0
+    jle     errorAbrirArchivo
+    mov     qword[handleArchivo], rax
+
+    ret
+
+leerArchivo:
+
+leerRegistro:
+    mov     rcx, registro
+    mov     rdx, 7
+    mov     r8, 1
+    mov     r9, [handleArchivo]
+    sub     rsp, 32
+    call    fread
+    add		rsp, 32
+
+    cmp     rax, 0
+    jle     finalDelArchivo
+
+    call    VALREG
+    cmp     byte[esValido], "S"
+    jne     leerRegistro                        ; Si el registro no es valido, pasa al siguiente
+
+    call    avanzarEnMatriz
+    jmp     leerRegistro
+
+finalDelArchivo:
+    mov     rcx, [handleArchivo]
+    sub     rsp, 32
+    call    fclose
+    add		rsp, 32
+
+    ret
+
+avanzarEnMatriz:
+    ; Desplazamiento 
+    ; [(fila-1)*longFila]  + [(columna-1)*longElemento]
+    ; longFila = longElemento * cantidad columnas -> longFila = 48
+
+    mov		rax, 0
+	mov		rbx, 0
+
+    mov     rcx, pisoBien		;Parametro 1: direccion del mensaje a imprimir
+    mov     rdx, [pisoNum]
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    sub     byte[pisoNum], 1
+    mov     bx, [pisoNum]
+    imul    bx, bx, 48
+
+    mov		[desplaz],bx                            ;copio a [desplaz] el desplaz.fila
+
+    mov     rcx, deplazFila		;Parametro 1: direccion del mensaje a imprimir
+    mov     rdx, [desplaz]
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    mov     rcx, deptoBien		;Parametro 1: direccion del mensaje a imprimir
+    mov     rdx, [departamento]
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    sub     byte[departamento], 1
+    mov     bx, [departamento]
+    imul    bx, bx, 4
+
+    mov     rcx, desplazCol		;Parametro 1: direccion del mensaje a imprimir
+    mov     rdx, rbx
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    add     [desplaz], bx
+    mov     ax, [desplaz]
+
+    mov     bx, [precio]
+    mov     [matriz + rax], bx             ;actualizo la matriz en la coordenada (i, j) dada con el numero dado
+
+    mov     rcx, msjCheckeando
+    mov		rdx,[matriz + rax]		;Parametro 1: direccion del mensaje a imprimir
+    mov     r8, [desplaz]
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    ret
+
+solicitar:
+    mov		rcx,msjPedirDep		;Parametro 1: direccion del mensaje a imprimir
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+	mov		rcx,bufferDep			;Parametro 1: direccion de memoria del campo donde se guarda lo ingresado
+	sub		rsp,32
+	call	gets				;Lee de teclado y lo guarda como string hasta que se ingresa fin de linea . Agrega un 0 binario al final
+	add		rsp,32
+
+	mov		rcx,bufferDep		        ;Parametro 1: campo donde están los datos a leer
+	mov		rdx,deptoFormat	            ;Parametro 2: dir del string q contiene los formatos
+    mov		r8,deptoIngresado		    ;Parametro 3: dir del campo que recibirá el dato formateado
+	sub		rsp,32
+	call	sscanf
+	add		rsp,32
+
+	cmp		rax,1			;rax tiene la cantidad de campos que pudo formatear correctamente
+	jl		solicitar
+
+    mov		rcx,msjPedirPrecio		;Parametro 1: direccion del mensaje a imprimir
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+	mov		rcx,bufferPrecio			;Parametro 1: direccion de memoria del campo donde se guarda lo ingresado
+	sub		rsp,32
+	call	gets				;Lee de teclado y lo guarda como string hasta que se ingresa fin de linea . Agrega un 0 binario al final
+	add		rsp,32
+
+	mov		rcx,bufferPrecio		        ;Parametro 1: campo donde están los datos a leer
+	mov		rdx,precioFormat	            ;Parametro 2: dir del string q contiene los formatos
+    mov		r8,precioIngresado		    ;Parametro 3: dir del campo que recibirá el dato formateado
+	sub		rsp,32
+	call	sscanf
+	add		rsp,32
+
+	cmp		rax,1			;rax tiene la cantidad de campos que pudo formatear correctamente
+	jl		solicitar
+
+comparar:
+    mov     rbx, 0
+
+    mov     rcx, msjDeptoEs
+    mov		rdx,[deptoIngresado]		;Parametro 1: direccion del mensaje a imprimir
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    mov     rcx, msjPrecioEs
+    mov		rdx,[precioIngresado]		;Parametro 1: direccion del mensaje a imprimir
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    mov     bx, [deptoIngresado]
+    dec     bx
+    imul    bx, bx, 4
+
+recorroFilas:
+    cmp     byte[contadorFila], 12
+    jg      finalPrograma
+
+    mov     eax, [matriz + rbx]
+
+    cmp     eax, [precioIngresado]
+    jl      mostrarFila
+
+    add     rbx, 48
+    inc     byte[contadorFila]
+    jmp     recorroFilas
+
+mostrarFila:
+    mov		rcx,msjPisos		;Parametro 1: direccion del mensaje a imprimir
+    mov     rdx,[contadorFila]
+	sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    add     rbx, 48
+    inc     byte[contadorFila]
+    jmp     recorroFilas
+
+; ------------------------------------------------
+;                 RUTINAS INTERNAS               |
+; ------------------------------------------------
+
+VALREG:
+
+validarPiso:
+    mov		rcx,2
+	mov		rsi,piso
+	mov		rdi,pisoStr
+	rep	    movsb
+
+	mov		rcx,pisoStr    
+	mov		rdx,pisoFormat   
+	mov		r8,pisoNum      
+	sub		rsp,32
+	call	sscanf
+	add		rsp,32
+
+	cmp     rax,1
+	jl	    invalido
+
+    cmp		byte[pisoNum],1
+	jl		invalido
+	cmp		byte[pisoNum],12
+	jg		invalido 
+
+    mov     rcx, msjBienPiso
+    mov     rdx, [pisoNum]
+    sub		rsp,32
+	call	printf
+	add		rsp,32
+
+deptoValido:
+    cmp		byte[departamento],1
+	jl		invalido
+	cmp		byte[departamento],12
+	jg		invalido
+
+    mov     al, byte[departamento]
+    cbw
+    mov     [departamento], ax
+
+    mov     rcx, msjBienDepto
+    mov     rdx, [departamento]
+    sub		rsp,32
+	call	printf
+	add		rsp,32
+
+    mov     rcx, msjBienPrecio
+    mov     rdx, [precio]
+    sub		rsp,32
+	call	printf
+	add		rsp,32
+
+regValido:
+    mov		byte[esValido],'S'
+
+finValidar:
+	ret
+
+invalido:
+    mov		byte[esValido],'N'
+
+    mov     rcx, msjErrorPiso
+    sub		rsp,32
+	call	puts
+	add		rsp,32
+
+	jmp		finValidar
+
+
+ */
