@@ -36,10 +36,6 @@ section .data
 
     sumatoriaFil dw 0
 
-    
-    
-
-
 section .bss
     
 
