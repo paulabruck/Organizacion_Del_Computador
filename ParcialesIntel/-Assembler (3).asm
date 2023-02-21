@@ -1,5 +1,3 @@
-; Francisco Orquera Lorda
-; 105554
 
 global	main
 extern  puts

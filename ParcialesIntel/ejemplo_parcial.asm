@@ -1,4 +1,3 @@
-;Numero de padron 103320
 
 global main
 extern sscanf

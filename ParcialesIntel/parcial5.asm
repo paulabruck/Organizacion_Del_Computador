@@ -1,5 +1,4 @@
-;TOMAS MOISES DAHAB
-;PADRON:106855
+
 
 
 ; La matriz tendria una forma de, por ejemplo, siendo 1 los campos explosivos y 0 los que no:
